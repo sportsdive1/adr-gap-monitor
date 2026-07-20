@@ -199,12 +199,20 @@
       catch (error) { $('status').textContent = `자동 시세를 불러오지 못했습니다. start.bat을 다시 실행한 뒤 접속하세요. (${error.message})`; }
       finally { $('refresh').disabled = false; }
     }
-    $('refresh').onclick = refresh;
+    const trackInteraction = (event, parameters = {}) => {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event, ...parameters });
+    };
+    $('refresh').onclick = () => {
+      trackInteraction('manual_refresh');
+      refresh();
+    };
     $('toggleMain').onclick = () => {
       const isOpening = $('toggleMain').getAttribute('aria-expanded') !== 'true';
       $('toggleMain').setAttribute('aria-expanded', String(isOpening));
       $('toggleMain').textContent = isOpening ? '접기' : '펼치기';
       $('mainContent').hidden = !isOpening;
+      trackInteraction('company_toggle', { company_name: 'SK하이닉스', action: isOpening ? 'expand' : 'collapse' });
     };
     setInterval(refresh, 60 * 60 * 1000);
     refresh();
@@ -248,6 +256,8 @@
         toggle.setAttribute('aria-expanded', String(isOpening));
         toggle.textContent = isOpening ? '접기' : '펼치기';
         content.hidden = !isOpening;
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'company_toggle', company_name: card.querySelector('.company-title').textContent, action: isOpening ? 'expand' : 'collapse' });
       });
       const set = (card, role, value) => { card.querySelector(`[data-role="${role}"]`).textContent = value; };
       const setHtml = (card, role, value) => { card.querySelector(`[data-role="${role}"]`).innerHTML = value; };
