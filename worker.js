@@ -2,6 +2,8 @@ import companies from './companies.json';
 import indexHtml from './index.html';
 import termsHtml from './terms.html';
 import privacyHtml from './privacy.html';
+import robotsTxt from './robots.txt';
+import sitemapXml from './sitemap.xml';
 
 const symbolMap = Object.fromEntries(companies.flatMap(company => [
   [company.krCode, company.krYahooSymbol],
@@ -17,6 +19,7 @@ const json = (value, status = 200) => new Response(JSON.stringify(value), {
   headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
 });
 const html = content => new Response(content, { headers: { 'content-type': 'text/html; charset=utf-8' } });
+const text = (content, contentType) => new Response(content, { headers: { 'content-type': contentType } });
 
 async function getQuote(symbol) {
   const cached = quoteCache.get(symbol);
@@ -91,6 +94,8 @@ export default {
       if (url.pathname === '/' || url.pathname === '/index.html') return html(indexHtml);
       if (url.pathname === '/terms.html') return html(termsHtml);
       if (url.pathname === '/privacy.html') return html(privacyHtml);
+      if (url.pathname === '/robots.txt') return text(robotsTxt, 'text/plain; charset=utf-8');
+      if (url.pathname === '/sitemap.xml') return text(sitemapXml, 'application/xml; charset=utf-8');
       return new Response('Not found', { status: 404 });
     }
 
