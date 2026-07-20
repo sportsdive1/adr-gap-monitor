@@ -1,0 +1,101 @@
+[
+  {
+    "id": "sk-hynix",
+    "name": "SK\uD558\uC774\uB2C9\uC2A4",
+    "krCode": "000660",
+    "krYahooSymbol": "000660.KS",
+    "usTicker": "SKHY",
+    "usYahooSymbol": "SKHY",
+    "usExchange": "NASDAQ",
+    "commonPerAdr": 0.1,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.1\uC8FC"
+  },
+  {
+    "id": "kb-financial",
+    "name": "KB\uAE08\uC735",
+    "krCode": "105560",
+    "krYahooSymbol": "105560.KS",
+    "usTicker": "KB",
+    "usYahooSymbol": "KB",
+    "usExchange": "NYSE",
+    "commonPerAdr": 1,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC"
+  },
+  {
+    "id": "shinhan-financial",
+    "name": "\uC2E0\uD55C\uC9C0\uC8FC",
+    "krCode": "055550",
+    "krYahooSymbol": "055550.KS",
+    "usTicker": "SHG",
+    "usYahooSymbol": "SHG",
+    "usExchange": "NYSE",
+    "commonPerAdr": 1,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC"
+  },
+  {
+    "id": "posco-holdings",
+    "name": "\uD3EC\uC2A4\uCF54\uD640\uB529\uC2A4",
+    "krCode": "005490",
+    "krYahooSymbol": "005490.KS",
+    "usTicker": "PKX",
+    "usYahooSymbol": "PKX",
+    "usExchange": "NYSE",
+    "commonPerAdr": 0.25,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.25\uC8FC"
+  },
+  {
+    "id": "woori-financial",
+    "name": "\uC6B0\uB9AC\uAE08\uC735\uC9C0\uC8FC",
+    "krCode": "316140",
+    "krYahooSymbol": "316140.KS",
+    "usTicker": "WF",
+    "usYahooSymbol": "WF",
+    "usExchange": "NYSE",
+    "commonPerAdr": 3,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 3\uC8FC"
+  },
+  {
+    "id": "kepco",
+    "name": "\uD55C\uAD6D\uC804\uB825",
+    "krCode": "015760",
+    "krYahooSymbol": "015760.KS",
+    "usTicker": "KEP",
+    "usYahooSymbol": "KEP",
+    "usExchange": "NYSE",
+    "commonPerAdr": 0.5,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC"
+  },
+  {
+    "id": "sk-telecom",
+    "name": "SK\uD154\uB808\uCF64",
+    "krCode": "017670",
+    "krYahooSymbol": "017670.KS",
+    "usTicker": "SKM",
+    "usYahooSymbol": "SKM",
+    "usExchange": "NYSE",
+    "commonPerAdr": 0.5555555556,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 5/9\uC8FC"
+  },
+  {
+    "id": "kt",
+    "name": "KT",
+    "krCode": "030200",
+    "krYahooSymbol": "030200.KS",
+    "usTicker": "KT",
+    "usYahooSymbol": "KT",
+    "usExchange": "NYSE",
+    "commonPerAdr": 0.5,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC"
+  },
+  {
+    "id": "lg-display",
+    "name": "LG\uB514\uC2A4\uD50C\uB808\uC774",
+    "krCode": "034220",
+    "krYahooSymbol": "034220.KS",
+    "usTicker": "LPL",
+    "usYahooSymbol": "LPL",
+    "usExchange": "NYSE",
+    "commonPerAdr": 0.5,
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC"
+  }
+]

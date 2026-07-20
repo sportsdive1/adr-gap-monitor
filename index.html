@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADR 괴리율 모니터</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#fffafa; --panel:#ffffff; --line:#f0dfe1; --muted:#907c7f; --text:#35292b; --mint:#d96d75; --orange:#d99078; --red:#d96d75; }
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 92% 0,#fde9e8 0,transparent 27rem),linear-gradient(135deg,#fffafa,#fff6f5 58%,#fffafa);color:var(--text);font-family:'Noto Sans KR',sans-serif} main{max-width:1160px;padding:44px 24px 64px;margin:auto} header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:25px}.eyebrow{color:var(--mint);font:600 11px 'Noto Sans KR',sans-serif;letter-spacing:.1em;text-transform:uppercase}h1{font-size:clamp(23px,3vw,32px);line-height:1.3;letter-spacing:-.055em;margin:9px 0 10px;font-weight:700;white-space:nowrap}.subtitle{margin:0;color:var(--muted);font:400 14px/1.75 'Noto Sans KR',sans-serif;max-width:680px}button{color:#fff;background:#d97981;border:1px solid #d97981;font:600 13px 'Noto Sans KR',sans-serif;padding:12px 17px;border-radius:10px;cursor:pointer;white-space:nowrap;box-shadow:0 7px 18px rgba(208,107,115,.19)}button:disabled{opacity:.55;cursor:wait}
+    .badges{display:flex;flex-wrap:wrap;gap:7px;margin:19px 0}.badge{padding:6px 10px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font:500 11px 'Noto Sans KR',sans-serif;background:rgba(255,255,255,.7)}.badge.live{color:#c95f69;border-color:#f1c8cb;background:#fff1f1}.badge.closed{color:#9c898c;border-color:#eadcdd;background:#fff}.hero{border:1px solid #f2d6d8;border-radius:18px;padding:28px 30px;background:linear-gradient(115deg,#fde9e9,#fffafa 69%);margin-bottom:14px;box-shadow:0 10px 30px rgba(164,104,109,.07)}.hero-kicker{font:700 13px 'Noto Sans KR',sans-serif}.hero-value{font:600 clamp(36px,5vw,52px) 'Noto Sans KR',sans-serif;letter-spacing:-.08em;margin:8px 0 2px;color:var(--mint)}.hero-value.discount{color:var(--orange)}.fair-price{font:700 clamp(22px,3.4vw,33px) 'Noto Sans KR',sans-serif;letter-spacing:-.055em;margin:3px 0 7px;color:#5d4044}.hero-copy{color:var(--muted);font:400 12px/1.7 'Noto Sans KR',sans-serif;margin:0}.market{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0 12px}.box{border:1px solid var(--line);border-radius:14px;padding:18px;background:rgba(255,255,255,.84);box-shadow:0 8px 22px rgba(121,84,87,.04)}.label{color:var(--muted);font:600 11px 'Noto Sans KR',sans-serif;letter-spacing:.06em}.value{font:600 clamp(21px,2.7vw,29px) 'Noto Sans KR',sans-serif;margin:11px 0 7px;letter-spacing:-.06em}.timestamp{color:var(--muted);font:400 11px 'Noto Sans KR',sans-serif}.result-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:21px}.result{border:1px solid var(--line);border-radius:14px;padding:22px;background:rgba(255,255,255,.84)}.result h2{font:700 13px 'Noto Sans KR',sans-serif;margin:0 0 13px}.secondary{font:600 clamp(28px,4.3vw,42px) 'Noto Sans KR',sans-serif;letter-spacing:-.07em;margin:0;color:var(--orange)}.meaning{color:var(--muted);margin:11px 0 0;font:400 12px/1.7 'Noto Sans KR',sans-serif}.interpretation{border-top:1px solid #f2e4e5;padding-top:12px;margin-top:14px}
+    .ad-banner{margin:18px 0;border:1px dashed #eadbdd;border-radius:12px;min-height:92px;display:grid;place-items:center;background:rgba(255,255,255,.54);color:#b69b9f;font:400 11px 'Noto Sans KR',sans-serif}.ad-banner span{letter-spacing:.08em}.fx-card{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.74);box-shadow:0 6px 18px rgba(121,84,87,.035);padding:13px 17px;display:flex;justify-content:center;align-items:center;margin:12px 0}.fx-card .timestamp{margin:0;text-align:center}.overview-grid{display:block;margin:12px 0}.company-list{display:grid;gap:12px;margin-top:12px}.stock-component{border:1px solid #e8e4e4;border-radius:18px;background:#fff;box-shadow:0 8px 22px rgba(121,84,87,.04);padding:26px}.company-heading{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.company-title{font:700 23px 'Noto Sans KR',sans-serif;letter-spacing:-.055em;margin:0}.stock-component .badges{margin:0}.stock-prices{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:18px}.stock-price{border:1px solid #e8e4e4;border-radius:14px;padding:22px;background:#fff}.stock-meta{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.stock-meta .timestamp{white-space:nowrap;text-align:right}.price-pair{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin:13px 0 7px}.price-pair .value{font-size:clamp(23px,2.6vw,30px);line-height:1.2;margin:0;letter-spacing:-.07em}.price-pair .converted{color:var(--text);font-size:clamp(16px,1.85vw,20px);font-weight:600;margin-top:3px}.approx{color:#b3969a;font-size:14px;font-weight:400;line-height:1;margin:5px 0}.gap-highlight{margin-top:17px;padding:19px 20px;border-radius:12px;background:#fcebec}.gap-sentence{margin:0;color:#64484d;font:500 clamp(13px,1.35vw,15px)/1.6 'Noto Sans KR',sans-serif;letter-spacing:-.025em}.gap-sentence strong{color:var(--text);font-size:1em;font-weight:800;letter-spacing:-.055em;white-space:nowrap}.gap-direction{color:var(--text);font-weight:800}.chart{margin-top:22px;border:1px solid var(--line);border-radius:14px;padding:22px;background:rgba(255,255,255,.84)}.chart-head{display:flex;justify-content:space-between;gap:16px;align-items:end}.chart h2{font:700 15px 'Noto Sans KR',sans-serif;margin:0}.chart p{margin:5px 0 0;color:var(--muted);font:400 11px 'Noto Sans KR',sans-serif}.range{font:500 11px 'Noto Sans KR',sans-serif;color:#c95f69}canvas{width:100%;height:250px;display:block;margin-top:14px}.legend{display:flex;gap:14px;color:var(--muted);font:400 11px 'Noto Sans KR',sans-serif;margin-top:3px}.legend i{width:8px;height:8px;border-radius:50%;background:var(--mint);display:inline-block;margin-right:5px}.legend i.line{background:#d9cbcd}.calc{margin-top:22px;padding:21px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.84)}.calc h2{font:700 14px 'Noto Sans KR',sans-serif;margin:0 0 13px}.equation{font:500 13px 'Noto Sans KR',sans-serif;color:#665053;overflow:auto;white-space:nowrap}details{margin-top:17px;border:1px solid var(--line);border-radius:14px;padding:0 18px;background:rgba(255,255,255,.66)}summary{cursor:pointer;padding:15px 0;font:700 13px 'Noto Sans KR',sans-serif}.inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:2px 0 18px}label{display:block;color:var(--muted);font:400 11px 'Noto Sans KR',sans-serif}input{width:100%;background:#fff;border:1px solid #eadbdd;color:var(--text);margin-top:7px;padding:11px;border-radius:8px;font:14px 'Noto Sans KR',sans-serif}.manual{margin-top:14px}.status{min-height:20px;color:var(--muted);margin:16px 1px 0;font:400 11px 'Noto Sans KR',sans-serif}.footer{border-top:1px solid var(--line);margin-top:34px;padding-top:17px;color:var(--muted);font:400 11px/1.75 'Noto Sans KR',sans-serif}.up{color:var(--mint)}.down{color:var(--red)}@media(max-width:700px){main{padding:31px 17px}header{display:block}header button{margin-top:18px}.company-heading{align-items:flex-start;gap:11px}.company-heading .badges{width:100%}.stock-prices,.inputs,.result-grid{grid-template-columns:1fr}.stock-meta{align-items:flex-start}.stock-meta .timestamp{font-size:10px}.fx-card .timestamp{width:auto}.chart{padding:18px}canvas{height:210px}}
+  </style>
+  <style>
+    .company-heading .toggle-company{margin-left:auto;padding:7px 11px;border:1px solid var(--line);border-radius:99px;background:#fff;color:#765e62;box-shadow:none;font:600 11px 'Noto Sans KR',sans-serif}
+    .company-heading .toggle-company:hover{border-color:#ddb8bc;background:#fff7f7}
+    .stock-prices[hidden]{display:none}
+    .fx-card{justify-content:space-between}.fx-card .timestamp{text-align:left}.fx-card #fxTime{font-weight:700;color:var(--text)}.fx-card #fxUpdatedAt{text-align:right;white-space:nowrap}
+    .footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
+    @media(max-width:700px){.company-heading .toggle-company{margin-left:0}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><div class="eyebrow">ADR GAP MONITOR</div><h1>ADR 괴리율 모니터</h1><p class="subtitle">국내와 미국 ADR 상장된 기업의 주가를 비교합니다.</p></div><button id="refresh">새로고침</button></header>
+    <section class="ad-banner" aria-label="광고"><span>광고</span></section>
+    <aside class="fx-card" aria-label="환율"><div class="timestamp" id="fxTime">참고용 환율 · 1 USD당 원화</div><div class="timestamp" id="fxUpdatedAt">기준: 확인 중</div></aside>
+    <section class="overview-grid" aria-label="ADR 가격 비교">
+      <section class="stock-component">
+        <div class="company-heading"><h2 class="company-title">SK하이닉스</h2><section class="badges" aria-label="ADR 비율"><span class="badge" id="mainRatio">ADR 비율 확인 중</span></section><button class="toggle-company" id="toggleMain" type="button" aria-expanded="true">접기</button><span id="krStatus" hidden></span><span id="usStatus" hidden></span></div>
+        <section class="stock-prices" id="mainContent" aria-label="주가와 환산가"><article class="stock-price"><div class="stock-meta"><div class="label">한국 KRX - SK하이닉스 (000660)</div><div class="timestamp" id="krwTime">가격을 불러오는 중</div></div><div class="price-pair"><span class="value" id="krwPrice">—</span><span class="approx">≒</span><span class="value converted" id="krUsdPrice">—</span></div><div class="gap-highlight"><p class="gap-sentence" id="krGapCopy">ADR 환산가와의 차이를 계산합니다.</p></div></article><article class="stock-price"><div class="stock-meta"><div class="label">미국 NASDAQ - SK하이닉스 (ADR) (SKHY)</div><div class="timestamp" id="adrTime">가격을 불러오는 중</div></div><div class="price-pair"><span class="value" id="adrPrice">—</span><span class="approx">≒</span><span class="value converted" id="adrKrwPrice">—</span></div><div class="gap-highlight"><p class="gap-sentence" id="adrGapCopy">한국 환산가와의 차이를 계산합니다.</p></div></article></section>
+      </section><section class="company-list" id="additionalCompanies" aria-label="추가 ADR 비교"></section>
+    </section>
+    <p id="status" hidden aria-live="polite"></p>
+    <footer class="footer">
+      <p>본 서비스의 가격·환율은 참고용 지연 시세이며 실제 거래 가격과 다를 수 있습니다.</p>
+      <p>ADR 비율, 기업행동, 환율, 거래 시간, 유동성 및 전환 비용에 따라 표시된 괴리율과 실제 전환·거래 결과는 달라질 수 있습니다.</p>
+      <p>본 서비스는 정보 제공 목적이며 투자 권유 또는 매매 추천이 아닙니다. 투자 판단과 그 결과에 대한 책임은 이용자에게 있습니다.</p>
+      <p>시세 데이터: Yahoo Finance · 환율 데이터: ExchangeRate-API</p>
+      <p class="footer-links"><a href="terms.html">이용약관</a><span>·</span><a href="privacy.html">개인정보처리방침</a><span>·</span><a href="mailto:sportsdive1@gmail.com?subject=ADR%20%EA%B4%B4%EB%A6%AC%EC%9C%A8%20%EB%AA%A8%EB%8B%88%ED%84%B0%20%EB%AC%B8%EC%9D%98">문의·오류 제보</a></p>
+    </footer>
+  </main>
+  <script type="application/disabled">
+    const ADR_PER_COMMON=10, $=id=>document.getElementById(id), money=(n,c)=>new Intl.NumberFormat('ko-KR',{style:'currency',currency:c,maximumFractionDigits:c==='KRW'?0:2}).format(n), pct=n=>`${n>=0?'+':''}${n.toFixed(2)}%`;
+    async function api(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal});const b=await r.json();if(!r.ok)throw Error(b.error||`API 오류 ${r.status}`);return b}catch(e){if(e.name==='AbortError')throw Error('로컬 서버 응답 시간 초과');throw e}finally{clearTimeout(t)}}
+    function marketOpen(tz,start,end){const p=new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date()),v=Object.fromEntries(p.map(x=>[x.type,x.value]));const mins=Number(v.hour)*60+Number(v.minute);return !['Sat','Sun'].includes(v.weekday)&&mins>=start&&mins<end}
+    function setMarkets(){const kr=marketOpen('Asia/Seoul',540,930), us=marketOpen('America/New_York',570,960);[['krStatus',kr,'KRX'],['usStatus',us,'NASDAQ']].forEach(([id,on,name])=>{const el=$(id);el.textContent=`${name} 정규장 ${on?'열림':'마감'} (추정)`;el.className=`badge ${on?'live':'closed'}`})}
+    function timeLabel(value,fallback){return value?new Date(value).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):fallback}
+    function render(krQuote,adrQuote,fxData){const krw=krQuote.price,adr=adrQuote.price,fx=fxData.rates.KRW;if(![krw,adr,fx].every(Number.isFinite)||krw<=0||adr<=0||fx<=0)return;const fair=krw/ADR_PER_COMMON/fx, implied=adr*ADR_PER_COMMON*fx, us=(adr/fair-1)*100, korea=(krw/implied-1)*100;['krwPrice','adrPrice','fxPrice'].forEach((id,i)=>$(id).textContent=[money(krw,'KRW'),money(adr,'USD'),fx.toLocaleString('ko-KR',{maximumFractionDigits:2})][i]);$('usPremium').textContent=pct(us);$('usPremium').className=`hero-value ${us<0?'discount':''}`;$('heroKicker').textContent=`SK하이닉스(ADR)는 한국 환산가 대비 ${us>=0?'프리미엄':'할인'}`;$('heroCopy').textContent=`SK하이닉스 환산 적정가 ${money(fair,'USD')} · 현재 SK하이닉스(ADR) ${money(adr,'USD')}`;$('krPremium').textContent=pct(korea);$('krMeaning').textContent=`SK하이닉스(ADR) 환산 적정가 ${money(implied,'KRW')} 대비 ${korea>=0?'높음':'낮음'}`;$('krwTime').textContent=`기준: ${timeLabel(krQuote.timestamp,'확인 중')} · 참고용 시세`;$('adrTime').textContent=`기준: ${timeLabel(adrQuote.timestamp,'확인 중')} · 참고용 시세`;$('fxTime').textContent=`1 USD = ${fx.toLocaleString('ko-KR',{maximumFractionDigits:2})} KRW · 참고용 환율`;$('krwInput').value=krw;$('adrInput').value=adr;$('fxInput').value=fx}
+    function draw(points){const canvas=$('gapChart'),ctx=canvas.getContext('2d'),w=canvas.clientWidth,h=canvas.clientHeight,dpr=devicePixelRatio||1;canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);if(!points?.length){$('chartRange').textContent='데이터 없음';return}const vals=points.map(x=>x.premium),max=Math.max(5,...vals.map(Math.abs))*1.15,min=-max,pad={l:38,r:12,t:15,b:27},x=i=>pad.l+i*(w-pad.l-pad.r)/Math.max(1,points.length-1),y=v=>pad.t+(max-v)*(h-pad.t-pad.b)/(max-min);ctx.strokeStyle='#f0dfe1';ctx.lineWidth=1;[-max/2,0,max/2].forEach(v=>{ctx.beginPath();ctx.moveTo(pad.l,y(v));ctx.lineTo(w-pad.r,y(v));ctx.stroke();ctx.fillStyle='#907c7f';ctx.font='11px Noto Sans KR';ctx.fillText(`${v.toFixed(0)}%`,2,y(v)+4)});ctx.strokeStyle='#d96d75';ctx.lineWidth=2;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(x(i),y(p.premium)):ctx.moveTo(x(i),y(p.premium)));ctx.stroke();const last=points.at(-1);ctx.fillStyle='#d96d75';ctx.beginPath();ctx.arc(x(points.length-1),y(last.premium),4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#907c7f';ctx.font='11px Noto Sans KR';ctx.fillText(points[0].date.slice(5),pad.l,h-8);ctx.fillText(last.date.slice(5),w-pad.r-30,h-8);$('chartRange').textContent=`최근 ${points.length} 거래일 · 현재 ${pct(last.premium)}`}
+    let chartPoints=[];let resizeTimer;
+    function applyHistory(points){chartPoints=points||[];draw(chartPoints);if(chartPoints.length){const average=chartPoints.reduce((sum,p)=>sum+p.premium,0)/chartPoints.length,current=Number($('usPremium').textContent.replace('%','').replace('+',''));if(Number.isFinite(current)){$('heroCopy').textContent+=` · 상장 후 평균 ${pct(average)} 대비 ${current-average>=0?'+':''}${(current-average).toFixed(2)}%p`}}}
+    async function refresh(){setMarkets();$('refresh').disabled=true;$('status').textContent='Yahoo Finance 시세와 환율을 불러오는 중입니다…';try{const [kr,us,fx,h]=await Promise.all([api('/api/quote?symbol=000660'),api('/api/quote?symbol=SKHY'),api('/api/fx'),api('/api/history').catch(()=>({points:[]}))]);render(kr,us,fx);applyHistory(h.points);$('status').textContent='Yahoo Finance·환율 API 기반 참고용 지연 시세입니다. 실제 거래 가격과 다를 수 있습니다.'}catch(e){$('status').textContent=`자동 시세를 불러오지 못했습니다. start.bat을 다시 실행한 뒤 접속하세요. (${e.message})`}finally{$('refresh').disabled=false}}
+    $('manualCalc').onclick=()=>{const v=['krwInput','adrInput','fxInput'].map(id=>Number($(id).value.replaceAll(',','')));render({price:v[0]},{price:v[1]},{rates:{KRW:v[2]}});$('status').textContent='수동 입력값으로 계산했습니다.'};$('refresh').onclick=refresh;addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>draw(chartPoints),150)});refresh();
+  </script>
+  <script>
+    let ADR_PER_COMMON = 0.1;
+    const $ = id => document.getElementById(id);
+    const state = { chartPoints: [], hoverIndex: -1, resizeTimer: null, usPremium: null };
+    const money = (amount, currency) => {
+      const formatted = new Intl.NumberFormat('ko-KR', { minimumFractionDigits: currency === 'KRW' ? 0 : 2, maximumFractionDigits: currency === 'KRW' ? 0 : 2 }).format(amount);
+      return currency === 'KRW' ? `${formatted}원` : `$${formatted}`;
+    };
+    const pct = value => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+
+    async function api(url) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        const body = await response.json();
+        if (!response.ok) throw Error(body.error || `API 오류 ${response.status}`);
+        return body;
+      } catch (error) {
+        if (error.name === 'AbortError') throw Error('로컬 서버 응답 시간 초과');
+        throw error;
+      } finally { clearTimeout(timer); }
+    }
+    function marketOpen(timeZone, start, end) {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+      const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      const minutes = Number(value.hour) * 60 + Number(value.minute);
+      return !['Sat', 'Sun'].includes(value.weekday) && minutes >= start && minutes < end;
+    }
+    function setMarkets() {
+      [['krStatus', marketOpen('Asia/Seoul', 540, 930), 'KRX'], ['usStatus', marketOpen('America/New_York', 570, 960), 'NASDAQ']].forEach(([id, open, name]) => {
+        const badge = $(id); badge.textContent = `${name} 정규장 ${open ? '열림' : '마감'}`; badge.className = `badge ${open ? 'live' : 'closed'}`;
+      });
+    }
+    function timeLabel(value, fallback = '확인 중') { return value ? new Date(value).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : fallback; }
+    function render(krQuote, adrQuote, fxData) {
+      const krw = krQuote.price, adr = adrQuote.price, fx = fxData.rates.KRW;
+      if (![krw, adr, fx].every(Number.isFinite) || krw <= 0 || adr <= 0 || fx <= 0) return;
+      const fairAdr = krw * ADR_PER_COMMON / fx, impliedKrw = adr * fx / ADR_PER_COMMON;
+      const usPremium = (adr / fairAdr - 1) * 100, koreaPremium = (krw / impliedKrw - 1) * 100;
+      $('krwPrice').textContent = money(krw, 'KRW'); $('adrPrice').textContent = money(adr, 'USD');
+      state.usPremium = usPremium;
+      $('adrKrwPrice').textContent = money(impliedKrw, 'KRW');
+      $('krUsdPrice').textContent = money(fairAdr, 'USD');
+      const krwDifference = Math.abs(impliedKrw - krw);
+      const usdDifference = Math.abs(adr - fairAdr);
+      const krwDifferenceLabel = money(krwDifference, 'KRW');
+      const usdDifferenceLabel = `${money(usdDifference, 'USD')}`;
+      const koreaDirection = koreaPremium >= 0 ? '높은' : '낮은';
+      const adrDirection = usPremium >= 0 ? '높은' : '낮은';
+      $('krGapCopy').innerHTML = `ADR 주가를 원화로 환산했을 때보다 (${money(impliedKrw, 'KRW')})<br><strong>${Math.abs(koreaPremium).toFixed(2)}% (${krwDifferenceLabel})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`;
+      $('adrGapCopy').innerHTML = `SK하이닉스 주가를 달러로 환산했을 때보다 (${money(fairAdr, 'USD')})<br><strong>${Math.abs(usPremium).toFixed(2)}% (${usdDifferenceLabel})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`;
+      $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)}`;
+      $('fxTime').textContent = `참고용 환율 · 1 USD = ${fx.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원`;
+      $('fxUpdatedAt').textContent = `기준: ${timeLabel(fxData.updatedAt)}`;
+    }
+    function geometry(canvas, points) {
+      const width = canvas.clientWidth, height = canvas.clientHeight, padding = { l: 38, r: 12, t: 15, b: 27 };
+      const max = Math.max(5, ...points.map(point => Math.abs(point.premium))) * 1.15;
+      return { width, height, padding, max, x: index => padding.l + index * (width - padding.l - padding.r) / Math.max(1, points.length - 1), y: value => padding.t + (max - value) * (height - padding.t - padding.b) / (max * 2) };
+    }
+    function draw(points, hoverIndex = state.hoverIndex) {
+      const canvas = $('gapChart'), ctx = canvas.getContext('2d'), dpr = devicePixelRatio || 1;
+      canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr; ctx.scale(dpr, dpr);
+      if (!points.length) { $('chartRange').textContent = '데이터 없음'; return; }
+      const g = geometry(canvas, points);
+      ctx.strokeStyle = '#f0dfe1'; ctx.lineWidth = 1;
+      [-g.max / 2, 0, g.max / 2].forEach(value => { ctx.beginPath(); ctx.moveTo(g.padding.l, g.y(value)); ctx.lineTo(g.width - g.padding.r, g.y(value)); ctx.stroke(); ctx.fillStyle = '#907c7f'; ctx.font = '11px Noto Sans KR'; ctx.fillText(`${value.toFixed(0)}%`, 2, g.y(value) + 4); });
+      ctx.strokeStyle = '#d96d75'; ctx.lineWidth = 2; ctx.beginPath(); points.forEach((point, index) => index ? ctx.lineTo(g.x(index), g.y(point.premium)) : ctx.moveTo(g.x(index), g.y(point.premium))); ctx.stroke();
+      const activeIndex = hoverIndex >= 0 ? hoverIndex : points.length - 1, point = points[activeIndex], pointX = g.x(activeIndex), pointY = g.y(point.premium);
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = '#d96d75'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(pointX, pointY, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (hoverIndex >= 0) {
+        const label = `${point.date}  ${pct(point.premium)}`; ctx.font = '600 11px Noto Sans KR'; const boxWidth = ctx.measureText(label).width + 18;
+        const boxX = Math.min(g.width - g.padding.r - boxWidth, Math.max(g.padding.l, pointX - boxWidth / 2)), boxY = Math.max(g.padding.t, pointY - 35);
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = '#eadbdd'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(boxX, boxY, boxWidth, 25, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#5d4044'; ctx.fillText(label, boxX + 9, boxY + 16);
+      }
+      ctx.fillStyle = '#907c7f'; ctx.font = '11px Noto Sans KR'; ctx.fillText(points[0].date.slice(5), g.padding.l, g.height - 8); ctx.fillText(points.at(-1).date.slice(5), g.width - g.padding.r - 30, g.height - 8);
+      $('chartRange').textContent = `최근 ${points.length} 거래일 · 현재 ${pct(points.at(-1).premium)}`;
+    }
+    function applyHistory(points) {
+      state.chartPoints = points || []; state.hoverIndex = -1; draw(state.chartPoints);
+      if (!state.chartPoints.length) return;
+    }
+    async function loadHistory() { try { applyHistory((await api('/api/history')).points); } catch { draw([]); } }
+    let additionalRefreshPromise = null;
+    function refreshAdditionalMarket() {
+      if (additionalRefreshPromise) return;
+      additionalRefreshPromise = api('/api/market')
+        .then(market => document.dispatchEvent(new CustomEvent('marketdata', { detail: market })))
+        .catch(() => {})
+        .finally(() => { additionalRefreshPromise = null; });
+    }
+    async function refresh() {
+      $('refresh').disabled = true;
+      try {
+        const market = await api('/api/market?company=sk-hynix');
+        const mainConfig = market.companies.find(company => company.id === 'sk-hynix');
+        const krQuote = market.quotes['000660'];
+        const adrQuote = market.quotes.SKHY;
+        if (!mainConfig || !market.fx || !krQuote || !adrQuote) {
+          const message = '시세 또는 환율을 불러오지 못했습니다.';
+          $('krwTime').textContent = message;
+          $('adrTime').textContent = message;
+          $('krGapCopy').innerHTML = `<strong>${message}</strong><br>다음 새로고침 때 다시 시도합니다.`;
+          $('adrGapCopy').innerHTML = `<strong>${message}</strong><br>다음 새로고침 때 다시 시도합니다.`;
+          $('status').hidden = false;
+          $('status').textContent = message;
+          refreshAdditionalMarket();
+          return;
+        }
+        ADR_PER_COMMON = mainConfig.commonPerAdr;
+        $('mainRatio').textContent = mainConfig.ratioLabel;
+        render(krQuote, adrQuote, market.fx);
+        if (krQuote.stale) $('krwTime').textContent += ' · 최신 시세 오류 / 이전 시세';
+        if (adrQuote.stale) $('adrTime').textContent += ' · 최신 시세 오류 / 이전 시세';
+        refreshAdditionalMarket();
+      } catch (error) {
+        $('status').hidden = false;
+        $('status').textContent = `시세를 불러오지 못했습니다. (${error.message})`;
+      } finally {
+        $('refresh').disabled = false;
+      }
+      return;
+      const mainCompany = (await companySettings).find(company => company.id === 'sk-hynix');
+      ADR_PER_COMMON = mainCompany.commonPerAdr; $('mainRatio').textContent = mainCompany.ratioLabel;
+      setMarkets(); $('refresh').disabled = true; $('status').textContent = 'Yahoo Finance 시세와 환율을 불러오는 중입니다…';
+      try { const [kr, us, fx] = await Promise.all([api('/api/quote?symbol=000660'), api('/api/quote?symbol=SKHY'), api('/api/fx')]); render(kr, us, fx); $('status').textContent = 'Yahoo Finance·환율 API 기반 참고용 지연 시세입니다. 실제 거래 가격과 다를 수 있습니다.'; }
+      catch (error) { $('status').textContent = `자동 시세를 불러오지 못했습니다. start.bat을 다시 실행한 뒤 접속하세요. (${error.message})`; }
+      finally { $('refresh').disabled = false; }
+    }
+    $('refresh').onclick = refresh;
+    $('toggleMain').onclick = () => {
+      const isOpening = $('toggleMain').getAttribute('aria-expanded') !== 'true';
+      $('toggleMain').setAttribute('aria-expanded', String(isOpening));
+      $('toggleMain').textContent = isOpening ? '접기' : '펼치기';
+      $('mainContent').hidden = !isOpening;
+    };
+    setInterval(refresh, 60 * 60 * 1000);
+    refresh();
+  </script>
+  <script>
+    (() => {
+      const pairs = [];
+      const container = document.getElementById('additionalCompanies');
+      const formatMoney = (amount, currency) => {
+        const value = new Intl.NumberFormat('ko-KR', { minimumFractionDigits: currency === 'KRW' ? 0 : 2, maximumFractionDigits: currency === 'KRW' ? 0 : 2 }).format(amount);
+        return currency === 'KRW' ? `${value}원` : `$${value}`;
+      };
+      const timeLabel = timestamp => timestamp ? new Date(timestamp).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '확인 중';
+      const api = async url => {
+        const response = await fetch(url);
+        const body = await response.json();
+        if (!response.ok) throw Error(body.error || '시세를 불러오지 못했습니다.');
+        return body;
+      };
+      const key = pair => `${pair.kr}-${pair.us}`;
+      function buildCards() { container.innerHTML = pairs.map(pair => {
+        const id = key(pair);
+        return `<section class="stock-component" data-pair="${id}">
+          <div class="company-heading">
+            <h2 class="company-title">${pair.name}</h2>
+            <section class="badges"><span class="badge">${pair.ratio}</span></section>
+            <button class="toggle-company" type="button" data-role="toggle" aria-expanded="false">펼치기</button>
+          </div>
+          <section class="stock-prices" data-role="content" hidden>
+            <article class="stock-price"><div class="stock-meta"><div class="label">한국 KRX - ${pair.name} (${pair.kr})</div><div class="timestamp" data-role="kr-time">가격을 불러오는 중</div></div><div class="price-pair"><span class="value" data-role="kr-price">—</span><span class="approx">≒</span><span class="value converted" data-role="kr-usd">—</span></div><div class="gap-highlight"><p class="gap-sentence" data-role="kr-gap">ADR 환산가와의 차이를 계산합니다.</p></div></article>
+            <article class="stock-price"><div class="stock-meta"><div class="label">미국 ${pair.exchange} - ${pair.name} (ADR) (${pair.us})</div><div class="timestamp" data-role="us-time">가격을 불러오는 중</div></div><div class="price-pair"><span class="value" data-role="us-price">—</span><span class="approx">≒</span><span class="value converted" data-role="us-krw">—</span></div><div class="gap-highlight"><p class="gap-sentence" data-role="us-gap">한국 환산가와의 차이를 계산합니다.</p></div></article>
+          </section>
+        </section>`;
+      }).join(''); }
+      container.addEventListener('click', event => {
+        const toggle = event.target.closest('[data-role="toggle"]');
+        if (!toggle) return;
+        const card = toggle.closest('.stock-component');
+        const content = card.querySelector('[data-role="content"]');
+        const isOpening = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(isOpening));
+        toggle.textContent = isOpening ? '접기' : '펼치기';
+        content.hidden = !isOpening;
+      });
+      const set = (card, role, value) => { card.querySelector(`[data-role="${role}"]`).textContent = value; };
+      const setHtml = (card, role, value) => { card.querySelector(`[data-role="${role}"]`).innerHTML = value; };
+      const showPairIssue = (card, message) => {
+        set(card, 'kr-time', message);
+        set(card, 'us-time', message);
+        setHtml(card, 'kr-gap', `<strong>${message}</strong><br>다음 새로고침 때 다시 시도합니다.`);
+        setHtml(card, 'us-gap', `<strong>${message}</strong><br>다음 새로고침 때 다시 시도합니다.`);
+      };
+      async function renderPair(pair, fx, market = null) {
+        const card = container.querySelector(`[data-pair="${key(pair)}"]`);
+        try {
+          const [krQuote, usQuote] = market ? [market.quotes[pair.kr], market.quotes[pair.us]] : await Promise.all([api(`/api/quote?symbol=${pair.kr}`), api(`/api/quote?symbol=${pair.us}`)]);
+          if (!krQuote || !usQuote) throw Error('Quote unavailable');
+          const krw = krQuote.price, adr = usQuote.price;
+          const fairAdr = krw * pair.commonPerAdr / fx;
+          const impliedKrw = adr * fx / pair.commonPerAdr;
+          const koreaGap = (krw / impliedKrw - 1) * 100;
+          const adrGap = (adr / fairAdr - 1) * 100;
+          const krwDifference = Math.abs(impliedKrw - krw);
+          const usdDifference = Math.abs(adr - fairAdr);
+          const koreaDirection = koreaGap >= 0 ? '높은' : '낮은';
+          const adrDirection = adrGap >= 0 ? '높은' : '낮은';
+          set(card, 'kr-price', formatMoney(krw, 'KRW'));
+          set(card, 'kr-usd', formatMoney(fairAdr, 'USD'));
+          set(card, 'us-price', formatMoney(adr, 'USD'));
+          set(card, 'us-krw', formatMoney(impliedKrw, 'KRW'));
+          set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)}`);
+          set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)}`);
+          if (krQuote.stale) set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)} · 최신 시세 오류 / 이전 시세`);
+          if (usQuote.stale) set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)} · 최신 시세 오류 / 이전 시세`);
+          setHtml(card, 'kr-gap', `ADR 주가를 원화로 환산했을 때보다 (${formatMoney(impliedKrw, 'KRW')})<br><strong>${Math.abs(koreaGap).toFixed(2)}% (${formatMoney(krwDifference, 'KRW')})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`);
+          setHtml(card, 'us-gap', `${pair.name} 주가를 달러로 환산했을 때보다 (${formatMoney(fairAdr, 'USD')})<br><strong>${Math.abs(adrGap).toFixed(2)}% (${formatMoney(usdDifference, 'USD')})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`);
+        } catch (error) { showPairIssue(card, '시세를 불러오지 못했습니다.'); }
+      }
+      async function refreshPairs(market = null) {
+        try {
+          const fx = market ? market.fx?.rates?.KRW : (await api('/api/fx')).rates.KRW;
+          if (!Number.isFinite(fx)) {
+            pairs.forEach(pair => showPairIssue(container.querySelector(`[data-pair="${key(pair)}"]`), '환율을 불러오지 못했습니다.'));
+            return;
+          }
+          await Promise.all(pairs.map(pair => renderPair(pair, fx, market)));
+        } catch { /* 개별 카드의 오류 상태를 유지합니다. */ }
+      }
+      async function initialisePairs() {
+        const settings = (await api('/api/companies')).companies;
+        pairs.push(...settings.filter(company => company.id !== 'sk-hynix').map(company => ({ name: company.name, kr: company.krCode, us: company.usTicker, exchange: company.usExchange, commonPerAdr: company.commonPerAdr, ratio: company.ratioLabel })));
+        buildCards();
+        if (latestMarket) await refreshPairs(latestMarket);
+      }
+      let latestMarket = null;
+      document.addEventListener('marketdata', event => { latestMarket = event.detail; refreshPairs(latestMarket); });
+      initialisePairs();
+    })();
+  </script>
+</body>
+</html>
