@@ -25,7 +25,7 @@
     .company-heading .toggle-company{margin-left:auto;padding:7px 11px;border:1px solid var(--line);border-radius:99px;background:#fff;color:#765e62;box-shadow:none;font:600 11px 'Noto Sans KR',sans-serif}
     .company-heading .toggle-company:hover{border-color:#ddb8bc;background:#fff7f7}
     .stock-prices[hidden]{display:none}
-    .fx-card{justify-content:space-between}.fx-card .timestamp{text-align:left}.fx-card #fxTime{font-weight:700;color:var(--text)}.fx-card #fxUpdatedAt{text-align:right;white-space:nowrap}
+    .fx-card{justify-content:space-between}.fx-card .timestamp{text-align:left}.fx-card #fxTime{font-weight:400;color:var(--muted)}.fx-card .fx-rate{font-weight:700;color:var(--text)}.fx-card #fxUpdatedAt{text-align:right;white-space:nowrap}
     .footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
     @media(max-width:700px){.company-heading .toggle-company{margin-left:0}}
   </style>
@@ -40,7 +40,7 @@
   <main>
     <header><div><div class="eyebrow">ADR GAP MONITOR</div><h1>ADR 괴리율 모니터</h1><p class="subtitle">국내와 미국 ADR 상장된 기업의 주가를 비교합니다.</p></div><button id="refresh">새로고침</button></header>
     <section class="ad-banner" aria-label="광고"><span>광고</span></section>
-    <aside class="fx-card" aria-label="환율"><div class="timestamp" id="fxTime">참고용 환율 · 1 USD당 원화</div><div class="timestamp" id="fxUpdatedAt">기준: 확인 중</div></aside>
+    <aside class="fx-card" aria-label="환율"><div class="timestamp" id="fxTime">환율 <span class="fx-rate">· 1 USD당 원화</span></div><div class="timestamp" id="fxUpdatedAt">기준: 확인 중</div></aside>
     <section class="overview-grid" aria-label="ADR 가격 비교">
       <section class="stock-component">
         <div class="company-heading"><h2 class="company-title">SK하이닉스</h2><section class="badges" aria-label="ADR 비율"><span class="badge" id="mainRatio">ADR 비율 확인 중</span></section><button class="toggle-company" id="toggleMain" type="button" aria-expanded="true">접기</button><span id="krStatus" hidden></span><span id="usStatus" hidden></span></div>
@@ -122,7 +122,7 @@
       $('krGapCopy').innerHTML = `ADR 주가를 원화로 환산했을 때보다<br><strong>${Math.abs(koreaPremium).toFixed(2)}% (${krwDifferenceLabel})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`;
       $('adrGapCopy').innerHTML = `SK하이닉스 주가를 달러로 환산했을 때보다<br><strong>${Math.abs(usPremium).toFixed(2)}% (${usdDifferenceLabel})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`;
       $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)}`;
-      $('fxTime').textContent = `참고용 환율 · 1 USD = ${fx.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원`;
+      $('fxTime').innerHTML = `환율 <span class="fx-rate">· 1 USD = ${fx.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원</span>`;
       $('fxUpdatedAt').textContent = `기준: ${timeLabel(fxData.updatedAt)}`;
     }
     function geometry(canvas, points) {
