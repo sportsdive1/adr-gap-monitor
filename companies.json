@@ -22,7 +22,10 @@
     "usYahooSymbol": "KB",
     "usExchange": "NYSE",
     "commonPerAdr": 1,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC",
+    "ratioSource": "KB Financial Group Form F-6 (filed 2015-11-13)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1445930/000119380515001876/e614274_f6-kb.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "shinhan-financial",
@@ -33,7 +36,10 @@
     "usYahooSymbol": "SHG",
     "usExchange": "NYSE",
     "commonPerAdr": 1,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC",
+    "ratioSource": "Shinhan Financial Group Form 20-F (filed 2026-04-22)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1263043/000119312526168235/d75079d20f.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "posco-holdings",
@@ -44,7 +50,10 @@
     "usYahooSymbol": "PKX",
     "usExchange": "NYSE",
     "commonPerAdr": 0.25,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.25\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.25\uC8FC",
+    "ratioSource": "POSCO Form F-6 (filed 2013-06-20)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/889132/000119380513001163/e611032_f6-posco.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "woori-financial",
@@ -55,7 +64,10 @@
     "usYahooSymbol": "WF",
     "usExchange": "NYSE",
     "commonPerAdr": 3,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 3\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 3\uC8FC",
+    "ratioSource": "Woori Financial Group Form F-6EF (filed 2019-01-11)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1264136/000119380519000040/e618111_f6ef-woori.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "kepco",
@@ -66,7 +78,10 @@
     "usYahooSymbol": "KEP",
     "usExchange": "NYSE",
     "commonPerAdr": 0.5,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC",
+    "ratioSource": "Korea Electric Power Form F-6 (filed 2014-06-12)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/887225/000119380514001226/e612406_f6-kep.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "sk-telecom",
@@ -77,7 +92,10 @@
     "usYahooSymbol": "SKM",
     "usExchange": "NYSE",
     "commonPerAdr": 0.5555555556,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 5/9\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 5/9\uC8FC",
+    "ratioSource": "SK Telecom Form 20-F (filed 2026-04-29)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1015650/000119312526188763/d78252d20f.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "kt",
@@ -88,7 +106,10 @@
     "usYahooSymbol": "KT",
     "usExchange": "NYSE",
     "commonPerAdr": 0.5,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC",
+    "ratioSource": "KT Corporation Form F-6EF (filed 2025-02-13)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/892450/000119380525000172/e664162_f6ef-ktcorp.htm",
+    "ratioVerifiedAt": "2026-07-21"
   },
   {
     "id": "lg-display",
@@ -99,6 +120,9 @@
     "usYahooSymbol": "LPL",
     "usExchange": "NYSE",
     "commonPerAdr": 0.5,
-    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC"
+    "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC",
+    "ratioSource": "LG Display Form F-6 POS (filed 2014-07-30)",
+    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1290109/000119380514001587/e612579_f6pos-lg.htm",
+    "ratioVerifiedAt": "2026-07-21"
   }
 ]
