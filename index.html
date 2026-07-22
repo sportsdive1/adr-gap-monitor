@@ -3,15 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="국내 상장 기업과 미국 ADR의 주가를 환율과 ADR 비율 기준으로 비교하는 ADR 괴리율 모니터입니다." />
+  <meta name="description" content="SK하이닉스 등 한국 상장 기업과 미국 ADR의 가격을 ADR 비율과 USD/KRW 환율 기준으로 비교해 괴리율을 확인하는 참고용 지연 시세 서비스입니다." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://adrgap.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="ADR 괴리율 모니터" />
-  <meta property="og:title" content="ADR 괴리율 모니터" />
-  <meta property="og:description" content="국내 상장 기업과 미국 ADR의 주가를 비교합니다." />
+  <meta property="og:title" content="ADR 괴리율 모니터 | 한국·미국 주가 비교" />
+  <meta property="og:description" content="SK하이닉스 등 한국 상장 기업과 미국 ADR의 가격을 ADR 비율과 환율 기준으로 비교합니다." />
   <meta property="og:url" content="https://adrgap.com/" />
-  <title>ADR 괴리율 모니터</title>
+  <title>ADR 괴리율 모니터 | 한국·미국 주가 비교</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://adrgap.com/#website",
+        "url": "https://adrgap.com/",
+        "name": "ADR 괴리율 모니터",
+        "inLanguage": "ko-KR"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://adrgap.com/#webpage",
+        "url": "https://adrgap.com/",
+        "name": "ADR 괴리율 모니터 | 한국·미국 주가 비교",
+        "description": "SK하이닉스 등 한국 상장 기업과 미국 ADR의 가격을 ADR 비율과 USD/KRW 환율 기준으로 비교해 괴리율을 확인하는 참고용 지연 시세 서비스입니다.",
+        "inLanguage": "ko-KR",
+        "isPartOf": { "@id": "https://adrgap.com/#website" }
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -26,7 +49,7 @@
     .company-heading .toggle-company:hover{border-color:#ddb8bc;background:#fff7f7}
     .stock-prices[hidden]{display:none}
     .fx-card{justify-content:space-between}.fx-card .timestamp{text-align:left}.fx-card #fxTime{font-weight:700;color:var(--text)}.fx-card #fxUpdatedAt{text-align:right;white-space:nowrap}
-    .footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
+    .coverage{margin:20px 0 0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.66)}.coverage h2{margin:0 0 7px;font:700 13px 'Noto Sans KR',sans-serif}.coverage p{margin:0;color:var(--muted);font:400 12px/1.75 'Noto Sans KR',sans-serif}.footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
     @media(max-width:700px){.ad-banner{min-height:64px;margin:16px 0}.company-heading{align-items:center}.company-heading .company-title{flex-basis:100%}.company-heading .badges{width:auto}.company-heading .toggle-company{margin-left:0}.label{font-size:12px}.stock-meta .timestamp{font-size:11px}.fx-card .timestamp{font-size:12px}}
   </style>
   <!-- Google Tag Manager -->
@@ -46,6 +69,10 @@
         <div class="company-heading"><h2 class="company-title">SK하이닉스</h2><section class="badges" aria-label="ADR 비율"><span class="badge" id="mainRatio">ADR 비율 확인 중</span></section><button class="toggle-company" id="toggleMain" type="button" aria-expanded="true">접기</button><span id="krStatus" hidden></span><span id="usStatus" hidden></span></div>
         <section class="stock-prices" id="mainContent" aria-label="주가와 환산가"><article class="stock-price"><div class="stock-meta"><div class="label">한국 KRX - SK하이닉스 (000660)</div><div class="timestamp" id="krwTime">가격을 불러오는 중</div></div><div class="price-pair"><span class="value" id="krwPrice">—</span><span class="approx">≒</span><span class="value converted" id="krUsdPrice">—</span></div><div class="gap-highlight"><p class="gap-sentence" id="krGapCopy">ADR 환산가와의 차이를 계산합니다.</p></div></article><article class="stock-price"><div class="stock-meta"><div class="label">미국 NASDAQ - SK하이닉스 (ADR) (SKHY)</div><div class="timestamp" id="adrTime">가격을 불러오는 중</div></div><div class="price-pair"><span class="value" id="adrPrice">—</span><span class="approx">≒</span><span class="value converted" id="adrKrwPrice">—</span></div><div class="gap-highlight"><p class="gap-sentence" id="adrGapCopy">한국 환산가와의 차이를 계산합니다.</p></div></article></section>
       </section><section class="company-list" id="additionalCompanies" aria-label="추가 ADR 비교"></section>
+    </section>
+    <section class="coverage" aria-labelledby="coverageTitle">
+      <h2 id="coverageTitle">비교 대상 기업</h2>
+      <p>SK하이닉스, KB금융, 신한금융, POSCO홀딩스, 우리금융지주, 한국전력, SK텔레콤, KT, LG디스플레이의 한국 주식과 미국 ADR 가격을 비교합니다.</p>
     </section>
     <p id="status" hidden aria-live="polite"></p>
     <footer class="footer">
