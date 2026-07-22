@@ -133,6 +133,13 @@
       });
     }
     function timeLabel(value, fallback = '확인 중') { return value ? new Date(value).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : fallback; }
+    function quoteSessionLabel(quote) {
+      if (!quote.extendedHoursIncluded) return '정규장 시세';
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date(quote.timestamp));
+      const value = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      const minutes = Number(value.hour) * 60 + Number(value.minute);
+      return !['Sat', 'Sun'].includes(value.weekday) && minutes >= 570 && minutes < 960 ? '정규장 시세' : '시간외 시세';
+    }
     function render(krQuote, adrQuote, fxData) {
       const krw = krQuote.price, adr = adrQuote.price, fx = fxData.rates.KRW;
       if (![krw, adr, fx].every(Number.isFinite) || krw <= 0 || adr <= 0 || fx <= 0) return;
@@ -150,7 +157,7 @@
       const adrDirection = usPremium >= 0 ? '높은' : '낮은';
       $('krGapCopy').innerHTML = `ADR 원화 환산가보다<br><strong>${Math.abs(koreaPremium).toFixed(2)}% (${krwDifferenceLabel})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`;
       $('adrGapCopy').innerHTML = `SK하이닉스 달러 환산가보다<br><strong>${Math.abs(usPremium).toFixed(2)}% (${usdDifferenceLabel})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`;
-      $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)}${adrQuote.extendedHoursIncluded ? ' · 시간외 시세 포함' : ''}`;
+      $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)} · ${quoteSessionLabel(krQuote)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)} · ${quoteSessionLabel(adrQuote)}`;
       $('fxTime').textContent = `환율: 1 USD = ${fx.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원`;
       $('fxUpdatedAt').textContent = `기준: ${timeLabel(fxData.updatedAt)}`;
     }
@@ -320,10 +327,10 @@
           set(card, 'kr-usd', formatMoney(fairAdr, 'USD'));
           set(card, 'us-price', formatMoney(adr, 'USD'));
           set(card, 'us-krw', formatMoney(impliedKrw, 'KRW'));
-          set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)}`);
-          set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)}${usQuote.extendedHoursIncluded ? ' · 시간외 시세 포함' : ''}`);
-          if (krQuote.stale) set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)} · 최신 시세 오류 / 이전 시세`);
-          if (usQuote.stale) set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)}${usQuote.extendedHoursIncluded ? ' · 시간외 시세 포함' : ''} · 최신 시세 오류 / 이전 시세`);
+          set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)} · ${quoteSessionLabel(krQuote)}`);
+          set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)} · ${quoteSessionLabel(usQuote)}`);
+          if (krQuote.stale) set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)} · ${quoteSessionLabel(krQuote)} · 최신 시세 오류 / 이전 시세`);
+          if (usQuote.stale) set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)} · ${quoteSessionLabel(usQuote)} · 최신 시세 오류 / 이전 시세`);
           setHtml(card, 'kr-gap', `ADR 원화 환산가보다<br><strong>${Math.abs(koreaGap).toFixed(2)}% (${formatMoney(krwDifference, 'KRW')})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`);
           setHtml(card, 'us-gap', `${pair.name} 달러 환산가보다<br><strong>${Math.abs(adrGap).toFixed(2)}% (${formatMoney(usdDifference, 'USD')})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`);
         } catch (error) { showPairIssue(card, '시세를 불러오지 못했습니다.'); }
