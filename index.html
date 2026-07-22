@@ -50,7 +50,7 @@
     .company-heading .toggle-company:hover{border-color:#ddb8bc;background:#fff7f7}
     .stock-prices[hidden]{display:none}
     .fx-card{justify-content:space-between}.fx-card .timestamp{text-align:left}.fx-card #fxTime{font-weight:700;color:var(--text)}.fx-card #fxUpdatedAt{text-align:right;white-space:nowrap}.refresh-status{margin:0;color:var(--muted);font:400 11px 'Noto Sans KR',sans-serif;white-space:nowrap}
-    .coverage{margin:20px 0 0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.66)}.coverage h2{margin:0 0 7px;font:700 13px 'Noto Sans KR',sans-serif}.coverage p{margin:0;color:var(--muted);font:400 12px/1.75 'Noto Sans KR',sans-serif}.footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
+    .ad-banner{display:none}.coverage{margin:20px 0 0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.66)}.coverage h2{margin:0 0 7px;font:700 13px 'Noto Sans KR',sans-serif}.coverage p{margin:0;color:var(--muted);font:400 12px/1.75 'Noto Sans KR',sans-serif}.footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
     @media(max-width:700px){.refresh-control{align-items:flex-start;margin-top:18px}.ad-banner{min-height:64px;margin:16px 0}.company-heading{align-items:center}.company-heading .company-title{flex-basis:100%}.company-heading .badges{width:auto}.company-heading .toggle-company{margin-left:0}.label{font-size:12px}.stock-meta .timestamp{font-size:11px}.fx-card .timestamp{font-size:12px}}
   </style>
   <style>@media(max-width:700px){header .refresh-control button{margin-top:0}}</style>
@@ -158,7 +158,7 @@
       $('krGapCopy').innerHTML = `ADR 원화 환산가보다<br><strong>${Math.abs(koreaPremium).toFixed(2)}% (${krwDifferenceLabel})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`;
       $('adrGapCopy').innerHTML = `SK하이닉스 달러 환산가보다<br><strong>${Math.abs(usPremium).toFixed(2)}% (${usdDifferenceLabel})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`;
       $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)} · ${quoteSessionLabel(krQuote)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)} · ${quoteSessionLabel(adrQuote)}`;
-      $('fxTime').textContent = `환율: 1 USD = ${fx.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원`;
+      $('fxTime').textContent = `환율: 1 USD = ${fx.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원`;
       $('fxUpdatedAt').textContent = `기준: ${timeLabel(fxData.updatedAt)}`;
     }
     function geometry(canvas, points) {
