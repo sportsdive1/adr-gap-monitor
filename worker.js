@@ -9,6 +9,7 @@ const symbolMap = Object.fromEntries(companies.flatMap(company => [
   [company.krCode, company.krYahooSymbol],
   [company.usTicker, company.usYahooSymbol]
 ]));
+const usAdrSymbols = new Set(companies.map(company => company.usTicker));
 const quoteCache = new Map();
 let fxCache = null;
 const quoteTtlMs = 60_000;
@@ -26,9 +27,10 @@ async function getQuote(symbol) {
   if (cached && Date.now() - cached.fetchedAt < quoteTtlMs) return { quote: cached.quote };
   const yahooSymbol = symbolMap[symbol];
   if (!yahooSymbol) return { error: 'Unsupported symbol' };
+  const includePrePost = usAdrSymbols.has(symbol);
 
   try {
-    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1m`, {
+    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1m${includePrePost ? '&includePrePost=true' : ''}`, {
       headers: { 'user-agent': 'Mozilla/5.0' }
     });
     if (!response.ok) throw new Error(`Yahoo Finance returned ${response.status}`);
@@ -44,6 +46,7 @@ async function getQuote(symbol) {
       price: closes[last],
       timestamp: new Date(timestamps[last] * 1_000).toISOString(),
       marketState: row.meta?.marketState ?? null,
+      extendedHoursIncluded: includePrePost,
       source: 'Yahoo Finance'
     };
     quoteCache.set(symbol, { quote, fetchedAt: Date.now() });

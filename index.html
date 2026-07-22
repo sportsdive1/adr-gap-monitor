@@ -150,7 +150,7 @@
       const adrDirection = usPremium >= 0 ? '높은' : '낮은';
       $('krGapCopy').innerHTML = `ADR 원화 환산가보다<br><strong>${Math.abs(koreaPremium).toFixed(2)}% (${krwDifferenceLabel})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`;
       $('adrGapCopy').innerHTML = `SK하이닉스 달러 환산가보다<br><strong>${Math.abs(usPremium).toFixed(2)}% (${usdDifferenceLabel})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`;
-      $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)}`;
+      $('krwTime').textContent = `기준: ${timeLabel(krQuote.timestamp)}`; $('adrTime').textContent = `기준: ${timeLabel(adrQuote.timestamp)}${adrQuote.extendedHoursIncluded ? ' · 시간외 시세 포함' : ''}`;
       $('fxTime').textContent = `환율: 1 USD = ${fx.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원`;
       $('fxUpdatedAt').textContent = `기준: ${timeLabel(fxData.updatedAt)}`;
     }
@@ -321,9 +321,9 @@
           set(card, 'us-price', formatMoney(adr, 'USD'));
           set(card, 'us-krw', formatMoney(impliedKrw, 'KRW'));
           set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)}`);
-          set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)}`);
+          set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)}${usQuote.extendedHoursIncluded ? ' · 시간외 시세 포함' : ''}`);
           if (krQuote.stale) set(card, 'kr-time', `기준: ${timeLabel(krQuote.timestamp)} · 최신 시세 오류 / 이전 시세`);
-          if (usQuote.stale) set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)} · 최신 시세 오류 / 이전 시세`);
+          if (usQuote.stale) set(card, 'us-time', `기준: ${timeLabel(usQuote.timestamp)}${usQuote.extendedHoursIncluded ? ' · 시간외 시세 포함' : ''} · 최신 시세 오류 / 이전 시세`);
           setHtml(card, 'kr-gap', `ADR 원화 환산가보다<br><strong>${Math.abs(koreaGap).toFixed(2)}% (${formatMoney(krwDifference, 'KRW')})</strong> <span class="gap-direction">${koreaDirection}</span> 상태입니다.`);
           setHtml(card, 'us-gap', `${pair.name} 달러 환산가보다<br><strong>${Math.abs(adrGap).toFixed(2)}% (${formatMoney(usdDifference, 'USD')})</strong> <span class="gap-direction">${adrDirection}</span> 상태입니다.`);
         } catch (error) { showPairIssue(card, '시세를 불러오지 못했습니다.'); }
