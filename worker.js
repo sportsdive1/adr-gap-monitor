@@ -2,6 +2,7 @@ import companies from './companies.json';
 import indexHtml from './index.html';
 import termsHtml from './terms.html';
 import privacyHtml from './privacy.html';
+import adrGapGuideHtml from './what-is-adr-gap.html';
 import robotsTxt from './robots.txt';
 import sitemapXml from './sitemap.xml';
 
@@ -109,6 +110,7 @@ export default {
       if (url.pathname === '/' || url.pathname === '/index.html') return html(indexHtml);
       if (url.pathname === '/terms.html') return html(termsHtml);
       if (url.pathname === '/privacy.html') return html(privacyHtml);
+      if (url.pathname === '/what-is-adr-gap/' || url.pathname === '/what-is-adr-gap') return html(adrGapGuideHtml);
       if (url.pathname === '/robots.txt') return text(robotsTxt, 'text/plain; charset=utf-8');
       if (url.pathname === '/sitemap.xml') return text(sitemapXml, 'application/xml; charset=utf-8');
       return new Response('Not found', { status: 404 });

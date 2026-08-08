@@ -51,6 +51,7 @@
     .stock-prices[hidden]{display:none}
     .fx-card{justify-content:space-between}.fx-card .timestamp{text-align:left}.fx-card #fxTime{font-weight:700;color:var(--text)}.fx-card #fxUpdatedAt{text-align:right;white-space:nowrap}.refresh-status{margin:0;color:var(--muted);font:400 11px 'Noto Sans KR',sans-serif;white-space:nowrap}
     .ad-banner{display:none}.coverage{margin:20px 0 0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.66)}.coverage h2{margin:0 0 7px;font:700 13px 'Noto Sans KR',sans-serif}.coverage p{margin:0;color:var(--muted);font:400 12px/1.75 'Noto Sans KR',sans-serif}.footer p{margin:0 0 4px}.footer-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px!important}.footer a{color:#765e62;text-decoration:underline;text-underline-offset:3px}
+    .guide-help{margin:14px 0 0;padding:15px 17px;border:1px solid var(--line);border-radius:14px;background:#fff}.guide-help h2{margin:0 0 6px;font:700 13px 'Noto Sans KR',sans-serif}.guide-help p{margin:0;color:var(--muted);font:400 12px/1.75 'Noto Sans KR',sans-serif}.guide-help a{color:#765e62;font-weight:700;text-decoration:underline;text-underline-offset:3px}
     @media(max-width:700px){.refresh-control{align-items:flex-start;margin-top:18px}.ad-banner{min-height:64px;margin:16px 0}.company-heading{align-items:center}.company-heading .company-title{flex-basis:100%}.company-heading .badges{width:auto}.company-heading .toggle-company{margin-left:0}.label{font-size:12px}.stock-meta .timestamp{font-size:11px}.fx-card .timestamp{font-size:12px}}
   </style>
   <style>@media(max-width:700px){header .refresh-control button{margin-top:0}}</style>
@@ -75,6 +76,10 @@
     <section class="coverage" aria-labelledby="coverageTitle">
       <h2 id="coverageTitle">비교 대상 기업</h2>
       <p>SK하이닉스, KB금융, 신한금융, POSCO홀딩스, 우리금융지주, 한국전력, SK텔레콤, KT, LG디스플레이의 한국 주식과 미국 ADR 가격을 비교합니다.</p>
+    </section>
+    <section class="guide-help" aria-labelledby="guideHelpTitle">
+      <h2 id="guideHelpTitle">괴리율을 해석할 때</h2>
+      <p>괴리율은 ADR 가격을 환율과 ADR 비율로 환산해 국내 본주와 비교한 참고 지표이며, 가격의 기준 시각과 시장 상태를 함께 확인해야 합니다. 단순 비교는 저평가·고평가 또는 매수·매도 신호가 아닙니다. <a href="/what-is-adr-gap/" data-track-content="adr_guide" data-link-placement="home_interpretation_help">ADR 괴리율의 계산 방법과 확인할 점 보기</a></p>
     </section>
     <p id="status" hidden aria-live="polite"></p>
     <footer class="footer">
@@ -245,6 +250,11 @@
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ event, ...parameters });
     };
+    document.addEventListener('click', event => {
+      const link = event.target.closest('[data-track-content]');
+      if (!link) return;
+      trackInteraction('select_content', { content_type: 'navigation', item_id: link.dataset.trackContent, link_placement: link.dataset.linkPlacement });
+    });
     $('refresh').onclick = () => {
       trackInteraction('manual_refresh');
       refresh();
@@ -254,7 +264,7 @@
       $('toggleMain').setAttribute('aria-expanded', String(isOpening));
       $('toggleMain').textContent = isOpening ? '접기' : '펼치기';
       $('mainContent').hidden = !isOpening;
-      trackInteraction('company_toggle', { company_name: 'SK하이닉스', action: isOpening ? 'expand' : 'collapse' });
+      trackInteraction('company_toggle', { company_id: 'sk-hynix', toggle_action: isOpening ? 'open' : 'close' });
     };
     setInterval(refresh, 60 * 60 * 1000);
     refresh();
@@ -299,7 +309,7 @@
         toggle.textContent = isOpening ? '접기' : '펼치기';
         content.hidden = !isOpening;
         window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ event: 'company_toggle', company_name: card.querySelector('.company-title').textContent, action: isOpening ? 'expand' : 'collapse' });
+        window.dataLayer.push({ event: 'company_toggle', company_id: card.dataset.pair, toggle_action: isOpening ? 'open' : 'close' });
       });
       const set = (card, role, value) => { card.querySelector(`[data-role="${role}"]`).textContent = value; };
       const setHtml = (card, role, value) => { card.querySelector(`[data-role="${role}"]`).innerHTML = value; };
