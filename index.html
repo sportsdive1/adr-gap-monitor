@@ -195,20 +195,24 @@
     }
     async function loadHistory() { try { applyHistory((await api('/api/history')).points); } catch { draw([]); } }
     let additionalRefreshPromise = null;
-    function refreshAdditionalMarket() {
+    function refreshAdditionalMarket(market = null) {
+      if (market) {
+        document.dispatchEvent(new CustomEvent('marketdata', { detail: market }));
+        return;
+      }
       if (additionalRefreshPromise) return;
       additionalRefreshPromise = api('/api/market')
         .then(market => document.dispatchEvent(new CustomEvent('marketdata', { detail: market })))
         .catch(() => {})
         .finally(() => { additionalRefreshPromise = null; });
     }
-    async function refresh() {
+    async function refresh(force = false) {
       const refreshButton = $('refresh');
       refreshButton.disabled = true;
       refreshButton.textContent = '업데이트 중…';
       let refreshed = false;
       try {
-        const market = await api('/api/market?company=sk-hynix');
+        const market = await api(force ? '/api/market?force=1' : '/api/market?company=sk-hynix');
         const mainConfig = market.companies.find(company => company.id === 'sk-hynix');
         const krQuote = market.quotes['000660'];
         const adrQuote = market.quotes.SKHY;
@@ -220,7 +224,7 @@
           $('adrGapCopy').innerHTML = `<strong>${message}</strong><br>다음 새로고침 때 다시 시도합니다.`;
           $('status').hidden = false;
           $('status').textContent = message;
-          refreshAdditionalMarket();
+          refreshAdditionalMarket(force ? market : null);
           return;
         }
         ADR_PER_COMMON = mainConfig.commonPerAdr;
@@ -229,7 +233,7 @@
         refreshed = true;
         if (krQuote.stale) $('krwTime').textContent += ' · 최신 시세 오류 / 이전 시세';
         if (adrQuote.stale) $('adrTime').textContent += ' · 최신 시세 오류 / 이전 시세';
-        refreshAdditionalMarket();
+        refreshAdditionalMarket(force ? market : null);
       } catch (error) {
         $('status').hidden = false;
         $('status').textContent = `시세를 불러오지 못했습니다. (${error.message})`;
@@ -257,7 +261,7 @@
     });
     $('refresh').onclick = () => {
       trackInteraction('manual_refresh');
-      refresh();
+      refresh(true);
     };
     $('toggleMain').onclick = () => {
       const isOpening = $('toggleMain').getAttribute('aria-expanded') !== 'true';

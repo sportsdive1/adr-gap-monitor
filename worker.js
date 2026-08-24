@@ -23,9 +23,9 @@ const json = (value, status = 200) => new Response(JSON.stringify(value), {
 const html = content => new Response(content, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 const text = (content, contentType) => new Response(content, { headers: { 'content-type': contentType } });
 
-async function getQuote(symbol) {
+async function getQuote(symbol, force = false) {
   const cached = quoteCache.get(symbol);
-  if (cached && Date.now() - cached.fetchedAt < quoteTtlMs) return { quote: cached.quote };
+  if (!force && cached && Date.now() - cached.fetchedAt < quoteTtlMs) return { quote: cached.quote };
   const yahooSymbol = symbolMap[symbol];
   if (!yahooSymbol) return { error: 'Unsupported symbol' };
   const includePrePost = usAdrSymbols.has(symbol);
@@ -43,9 +43,16 @@ async function getQuote(symbol) {
     let last = closes.length - 1;
     while (last >= 0 && !Number.isFinite(closes[last])) last -= 1;
     if (last < 0) throw new Error('No Yahoo Finance price data available');
+    const regularMarketPrice = row.meta?.regularMarketPrice;
+    const regularMarketTime = row.meta?.regularMarketTime;
+    const hasRegularMarketMeta = !includePrePost
+      && Number.isFinite(regularMarketPrice)
+      && regularMarketPrice > 0
+      && Number.isFinite(regularMarketTime)
+      && regularMarketTime > 0;
     const quote = {
-      price: closes[last],
-      timestamp: new Date(timestamps[last] * 1_000).toISOString(),
+      price: hasRegularMarketMeta ? regularMarketPrice : closes[last],
+      timestamp: new Date((hasRegularMarketMeta ? regularMarketTime : timestamps[last]) * 1_000).toISOString(),
       marketState: row.meta?.marketState ?? null,
       extendedHoursIncluded: includePrePost,
       source: 'Yahoo Finance'
@@ -58,8 +65,8 @@ async function getQuote(symbol) {
   }
 }
 
-async function getFx() {
-  if (fxCache && Date.now() - fxCache.fetchedAt < fxTtlMs) return { fx: fxCache.fx };
+async function getFx(force = false) {
+  if (!force && fxCache && Date.now() - fxCache.fetchedAt < fxTtlMs) return { fx: fxCache.fx };
   try {
     const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?range=1d&interval=1m', {
       headers: { 'user-agent': 'Mozilla/5.0' }
@@ -87,18 +94,18 @@ async function getFx() {
   }
 }
 
-async function getMarketData(companyId) {
+async function getMarketData(companyId, force = false) {
   const selected = companyId ? companies.filter(company => company.id === companyId) : companies;
   if (!selected.length) return { error: 'Unknown company' };
   const symbols = selected.flatMap(company => [company.krCode, company.usTicker]);
-  const results = await Promise.all(symbols.map(async symbol => [symbol, await getQuote(symbol)]));
+  const results = await Promise.all(symbols.map(async symbol => [symbol, await getQuote(symbol, force)]));
   const quotes = {};
   const errors = {};
   for (const [symbol, result] of results) {
     if (result.quote) quotes[symbol] = result.quote;
     if (result.error) errors[symbol] = { message: result.error, lastKnownTimestamp: result.quote?.timestamp ?? null };
   }
-  const fxResult = await getFx();
+  const fxResult = await getFx(force);
   if (fxResult.error) errors.fx = { message: fxResult.error, lastKnownTimestamp: fxResult.fx?.updatedAt ?? null };
   return { companies: selected, quotes, fx: fxResult.fx ?? null, errors, cachedAt: new Date().toISOString() };
 }
@@ -119,15 +126,15 @@ export default {
     if (url.pathname === '/api/companies') return json({ companies });
     if (url.pathname === '/api/quote') {
       const symbol = url.searchParams.get('symbol');
-      const result = await getQuote(symbol);
+      const result = await getQuote(symbol, url.searchParams.get('force') === '1');
       return result.quote ? json(result.quote) : json({ error: result.error }, 502);
     }
     if (url.pathname === '/api/fx') {
-      const result = await getFx();
+      const result = await getFx(url.searchParams.get('force') === '1');
       return result.fx ? json(result.fx) : json({ error: result.error }, 502);
     }
     if (url.pathname === '/api/market') {
-      const data = await getMarketData(url.searchParams.get('company'));
+      const data = await getMarketData(url.searchParams.get('company'), url.searchParams.get('force') === '1');
       return data.error ? json({ error: data.error }, 404) : json(data);
     }
     return json({ error: 'Not found' }, 404);
