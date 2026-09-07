@@ -6,7 +6,7 @@
   "rules": [
     {
       "type": "Text",
-        "globs": ["**/*.html", "**/*.txt", "**/*.xml"],
+      "globs": ["**/*.html", "**/*.txt", "**/*.xml", "**/assets/*.js", "**/assets/*.css"],
       "fallthrough": false
     }
   ]

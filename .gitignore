@@ -1,0 +1,12 @@
+config.ps1
+node_modules/
+.wrangler/
+.pnpm-store/
+dist/
+test-results/
+reports/baseline.html
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+archive/

@@ -5,115 +5,24 @@ import privacyHtml from './privacy.html';
 import adrGapGuideHtml from './what-is-adr-gap.html';
 import robotsTxt from './robots.txt';
 import sitemapXml from './sitemap.xml';
+import appJs from './assets/app.js';
+import modelJs from './assets/model.js';
+import stylesCss from './assets/styles.css';
 
-const symbolMap = Object.fromEntries(companies.flatMap(company => [
-  [company.krCode, company.krYahooSymbol],
-  [company.usTicker, company.usYahooSymbol]
-]));
-const usAdrSymbols = new Set(companies.map(company => company.usTicker));
-const quoteCache = new Map();
-let fxCache = null;
-const quoteTtlMs = 60_000;
-const fxTtlMs = 60 * 60 * 1_000;
+import { createMarketService } from './src/market-service.js';
 
-const json = (value, status = 200) => new Response(JSON.stringify(value), {
-  status,
-  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
-});
+const { getQuote, getFx, getMarketData } = createMarketService(companies);
+const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 const html = content => new Response(content, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 const text = (content, contentType) => new Response(content, { headers: { 'content-type': contentType } });
-
-async function getQuote(symbol, force = false) {
-  const cached = quoteCache.get(symbol);
-  if (!force && cached && Date.now() - cached.fetchedAt < quoteTtlMs) return { quote: cached.quote };
-  const yahooSymbol = symbolMap[symbol];
-  if (!yahooSymbol) return { error: 'Unsupported symbol' };
-  const includePrePost = usAdrSymbols.has(symbol);
-
-  try {
-    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=1d&interval=1m${includePrePost ? '&includePrePost=true' : ''}`, {
-      headers: { 'user-agent': 'Mozilla/5.0' }
-    });
-    if (!response.ok) throw new Error(`Yahoo Finance returned ${response.status}`);
-    const data = await response.json();
-    const row = data.chart?.result?.[0];
-    const closes = row?.indicators?.quote?.[0]?.close;
-    const timestamps = row?.timestamp;
-    if (!row || !Array.isArray(closes) || !Array.isArray(timestamps)) throw new Error('No Yahoo Finance price data available');
-    let last = closes.length - 1;
-    while (last >= 0 && !Number.isFinite(closes[last])) last -= 1;
-    if (last < 0) throw new Error('No Yahoo Finance price data available');
-    const regularMarketPrice = row.meta?.regularMarketPrice;
-    const regularMarketTime = row.meta?.regularMarketTime;
-    const hasRegularMarketMeta = !includePrePost
-      && Number.isFinite(regularMarketPrice)
-      && regularMarketPrice > 0
-      && Number.isFinite(regularMarketTime)
-      && regularMarketTime > 0;
-    const quote = {
-      price: hasRegularMarketMeta ? regularMarketPrice : closes[last],
-      timestamp: new Date((hasRegularMarketMeta ? regularMarketTime : timestamps[last]) * 1_000).toISOString(),
-      marketState: row.meta?.marketState ?? null,
-      extendedHoursIncluded: includePrePost,
-      source: 'Yahoo Finance'
-    };
-    quoteCache.set(symbol, { quote, fetchedAt: Date.now() });
-    return { quote };
-  } catch (error) {
-    if (cached) return { quote: { ...cached.quote, stale: true }, error: error.message };
-    return { error: error.message };
-  }
-}
-
-async function getFx(force = false) {
-  if (!force && fxCache && Date.now() - fxCache.fetchedAt < fxTtlMs) return { fx: fxCache.fx };
-  try {
-    const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/KRW%3DX?range=1d&interval=1m', {
-      headers: { 'user-agent': 'Mozilla/5.0' }
-    });
-    if (!response.ok) throw new Error(`Yahoo Finance returned ${response.status}`);
-    const data = await response.json();
-    const row = data.chart?.result?.[0];
-    const closes = row?.indicators?.quote?.[0]?.close;
-    const timestamps = row?.timestamp;
-    if (!row || !Array.isArray(closes) || !Array.isArray(timestamps)) throw new Error('No Yahoo Finance FX data available');
-    let last = closes.length - 1;
-    while (last >= 0 && !Number.isFinite(closes[last])) last -= 1;
-    if (last < 0) throw new Error('No Yahoo Finance FX data available');
-    const rate = closes[last];
-    const fx = {
-      rates: { KRW: rate },
-      updatedAt: new Date(timestamps[last] * 1_000).toISOString(),
-      source: 'Yahoo Finance (KRW=X)'
-    };
-    fxCache = { fx, fetchedAt: Date.now() };
-    return { fx };
-  } catch (error) {
-    if (fxCache) return { fx: { ...fxCache.fx, stale: true }, error: error.message };
-    return { error: error.message };
-  }
-}
-
-async function getMarketData(companyId, force = false) {
-  const selected = companyId ? companies.filter(company => company.id === companyId) : companies;
-  if (!selected.length) return { error: 'Unknown company' };
-  const symbols = selected.flatMap(company => [company.krCode, company.usTicker]);
-  const results = await Promise.all(symbols.map(async symbol => [symbol, await getQuote(symbol, force)]));
-  const quotes = {};
-  const errors = {};
-  for (const [symbol, result] of results) {
-    if (result.quote) quotes[symbol] = result.quote;
-    if (result.error) errors[symbol] = { message: result.error, lastKnownTimestamp: result.quote?.timestamp ?? null };
-  }
-  const fxResult = await getFx(force);
-  if (fxResult.error) errors.fx = { message: fxResult.error, lastKnownTimestamp: fxResult.fx?.updatedAt ?? null };
-  return { companies: selected, quotes, fx: fxResult.fx ?? null, errors, cachedAt: new Date().toISOString() };
-}
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) {
+      if (url.pathname === '/assets/app.js') return text(appJs, 'application/javascript; charset=utf-8');
+      if (url.pathname === '/assets/model.js') return text(modelJs, 'application/javascript; charset=utf-8');
+      if (url.pathname === '/assets/styles.css') return text(stylesCss, 'text/css; charset=utf-8');
       if (url.pathname === '/' || url.pathname === '/index.html') return html(indexHtml);
       if (url.pathname === '/terms.html') return html(termsHtml);
       if (url.pathname === '/privacy.html') return html(privacyHtml);
