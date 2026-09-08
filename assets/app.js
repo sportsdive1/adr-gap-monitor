@@ -77,7 +77,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
       element(company, 'name').textContent = company.name;
       element(company, 'name').id = `company-name-${company.id}`;
       card.setAttribute('aria-labelledby', `company-name-${company.id}`);
-      element(company, 'monogram').textContent = company.usTicker.slice(0, 2);
+      element(company, 'monogram').textContent = company.usTicker;
       element(company, 'us-ticker').textContent = company.usTicker;
       element(company, 'ratio').textContent = company.ratioLabel;
       element(company, 'kr-label').textContent = `한국 KRX · ${company.krCode}`;

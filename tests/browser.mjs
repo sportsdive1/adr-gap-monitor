@@ -82,6 +82,7 @@ try {
       const data = marketFixture();
       const expected = compare(data.quotes[company.krCode], data.quotes[company.usTicker], data.fx.rates.KRW, company.commonPerAdr);
       const card = page.locator(`[data-company-id="${company.id}"]`);
+      assert.equal(await card.locator('[data-role="monogram"]').innerText(), company.usTicker);
       assert.equal(await card.locator('[data-role="summary"]').innerText(), gapSummary(expected.adrGap));
       assert.equal(await card.locator('[data-role="summary-fair-adr"]').innerText(), money(expected.fairAdr, 'USD'));
       assert.equal(await card.locator('[data-role="summary-adr"]').innerText(), money(expected.adr, 'USD'));
