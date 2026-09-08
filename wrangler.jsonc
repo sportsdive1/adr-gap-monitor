@@ -3,6 +3,16 @@
   "name": "adr-gap-monitor",
   "main": "worker.js",
   "compatibility_date": "2026-07-20",
+  "routes": [
+    {
+      "pattern": "adrgap.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.adrgap.com",
+      "custom_domain": true
+    }
+  ],
   "rules": [
     {
       "type": "Text",
