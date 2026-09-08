@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { marketFixture } from './fixtures.js';
-import { compare, gapSummary, PREFERENCES_KEY } from '../assets/model.js';
+import { compare, gapSummary, money, PREFERENCES_KEY } from '../assets/model.js';
 
 const server = spawn(process.execPath, ['scripts/test-server.mjs'], { stdio: ['ignore', 'pipe', 'inherit'] });
 const url = await new Promise((resolve, reject) => {
@@ -73,6 +73,8 @@ try {
 
     requests = []; errors.length = 0;
     await page.goto(url); await ready();
+    assert.equal(await page.locator('.brand').innerText(), 'ADRGAP');
+    assert.equal(await page.locator('.brand-mark, .brand svg, .brand img').count(), 0);
     const currentLayout = await layout();
     assert.equal(currentLayout.overflow, false, `${label}: horizontal overflow`);
     assert.deepEqual(requests, ['/api/market?company=sk-hynix', '/api/market']);
@@ -81,14 +83,17 @@ try {
       const expected = compare(data.quotes[company.krCode], data.quotes[company.usTicker], data.fx.rates.KRW, company.commonPerAdr);
       const card = page.locator(`[data-company-id="${company.id}"]`);
       assert.equal(await card.locator('[data-role="summary"]').innerText(), gapSummary(expected.adrGap));
+      assert.equal(await card.locator('[data-role="summary-fair-adr"]').innerText(), money(expected.fairAdr, 'USD'));
+      assert.equal(await card.locator('[data-role="summary-adr"]').innerText(), money(expected.adr, 'USD'));
       assert.match(await card.locator('[data-role="summary-kr-time"]').innerText(), /국내 기준:.*정규장/);
       assert.match(await card.locator('[data-role="summary-us-time"]').innerText(), /ADR 기준:.*시간외/);
       assert.equal(await card.locator('[data-role="pin"]').getAttribute('aria-pressed'), 'false');
     }
-    assert.equal(await page.locator('#toggleMain').getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('#toggleMain').getAttribute('aria-expanded'), 'false');
     const controls = await page.locator('.company-actions button').evaluateAll(buttons => buttons.map(b => ({ height: b.getBoundingClientRect().height, name: b.getAttribute('aria-label') })));
     assert.ok(controls.every(b => b.height >= 44 && b.name));
     await page.screenshot({ path: `test-results/${label}.png`, fullPage: true });
+    await page.screenshot({ path: `test-results/design-${label}-overview.png` });
     const first = page.locator('[data-company-id="kb-financial"]');
     await first.locator('[data-role="toggle"]').click();
     assert.equal(await first.locator('[data-role="content"]').isVisible(), true);
@@ -152,6 +157,8 @@ try {
     assert.equal(await first.locator('[data-role="pin"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await first.locator('[data-role="pin"]').evaluate(e => e === document.activeElement), true);
     await page.locator('#toggleMain').click();
+    assert.equal(await page.locator('[data-company-id="sk-hynix"] [data-role="content"]').isVisible(), true);
+    await page.locator('#toggleMain').click();
     assert.equal(requests.length, requestCount);
     const saved = JSON.parse(await page.evaluate(key => localStorage.getItem(key), PREFERENCES_KEY));
     assert.deepEqual(saved.pinned, ['kb-financial']);
@@ -176,7 +183,7 @@ try {
     // Corrupt storage must not break initial rendering.
     await page.evaluate(key => localStorage.setItem(key, '{broken'), PREFERENCES_KEY);
     await page.reload(); await ready();
-    assert.equal(await page.locator('#toggleMain').getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('#toggleMain').getAttribute('aria-expanded'), 'false');
     assert.equal(await first.locator('[data-role="content"]').isVisible(), false);
     // Unknown company IDs are ignored without adding cards or changing the default order.
     await page.evaluate(key => localStorage.setItem(key, JSON.stringify({ version: 1, pinned: ['unknown-company'], expanded: { 'unknown-company': true } })), PREFERENCES_KEY);
@@ -199,8 +206,23 @@ try {
     await page.addStyleTag({ content: 'html{font-size:200%!important}' });
     assert.equal((await layout()).overflow, false, '200% text overflow');
     assert.equal(await first.locator('[data-role="toggle"]').isVisible(), true);
+    // Shared document styles must preserve the existing content and navigation.
+    for (const route of ['/what-is-adr-gap/', '/terms.html', '/privacy.html']) {
+      const docResponse = await page.goto(url + route);
+      assert.equal(docResponse.status(), 200);
+      await page.addStyleTag({ content: 'html{font-size:200%!important}' });
+      assert.equal(await page.locator('body.document-page').count(), 1);
+      assert.equal(await page.locator('.brand').innerText(), 'ADRGAP');
+      assert.equal(await page.locator('.brand-mark, .brand svg, .brand img').count(), 0);
+      assert.equal(await page.locator('h1').count(), 1);
+      assert.equal((await layout()).overflow, false, route + ' overflow at 200% text');
+      if (route === '/what-is-adr-gap/') {
+        await page.locator('.toc a[href="#calculation"]').click();
+        assert.match(page.url(), /#calculation$/);
+      }
+    }
     assert.deepEqual(errors, []);
-    results.push({ viewport: label, passed: true, initialApiRequests: 2, manualApiRequests: 1, scenarios: ['nine summaries / common denominator', 'separate source times / US session policy', 'layout / 44px controls / 320px / 200% text', 'toggle / analytics ID', 'force / unchanged source time', 'error recovery / invalid / stale / partial', 'request supersession', 'pin / unpin / focus / keyboard', 'preference reload', 'corrupt / unknown / blocked storage'] });
+    results.push({ viewport: label, passed: true, initialApiRequests: 2, manualApiRequests: 1, scenarios: ['nine summaries / two comparable USD prices', 'separate source times / US session policy', 'layout / 44px controls / 320px / 200% text', 'toggle / analytics ID', 'force / unchanged source time', 'error recovery / invalid / stale / partial', 'request supersession', 'pin / unpin / focus / keyboard', 'collapsed defaults / preference reload', 'corrupt / unknown / blocked storage', 'shared guide / policy styling and navigation'] });
     await context.close();
   }
   console.log(JSON.stringify(results, null, 2));

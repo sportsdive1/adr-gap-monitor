@@ -50,15 +50,16 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     const ordered = [...cards.entries()].sort(([a], [b]) => Number(preferences.pinned.includes(b)) - Number(preferences.pinned.includes(a)));
     ordered.forEach(([id, card], index) => {
       const pinned = preferences.pinned.includes(id);
-      const opening = Object.hasOwn(preferences.expanded, id) ? preferences.expanded[id] : id === MAIN_ID;
+      const opening = Object.hasOwn(preferences.expanded, id) ? preferences.expanded[id] : false;
       const pin = card.querySelector('[data-role="pin"]');
       pin.setAttribute('aria-pressed', String(pinned));
       pin.setAttribute('aria-label', `${card.dataset.name} ${pinned ? '관심 기업 고정 해제' : '관심 기업으로 고정'}`);
-      pin.firstElementChild.textContent = pinned ? '★' : '☆';
+      card.querySelector('[data-role="monogram"]').setAttribute('data-pinned', String(pinned));
       card.dataset.pinned = String(pinned);
       const toggle = card.querySelector('[data-role="toggle"]');
       toggle.setAttribute('aria-expanded', String(opening));
-      toggle.textContent = opening ? '접기' : '펼치기';
+      card.querySelector('[data-role="toggle-label"]').textContent = opening ? '접기' : '상세';
+      card.dataset.expanded = String(opening);
       toggle.setAttribute('aria-label', `${card.dataset.name} 상세 ${opening ? '접기' : '펼치기'}`);
       card.querySelector('[data-role="content"]').hidden = !opening;
       if (container.children[index] !== card) container.insertBefore(card, container.children[index] || null);
@@ -74,6 +75,10 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
       card.dataset.name = company.name;
       cards.set(company.id, card);
       element(company, 'name').textContent = company.name;
+      element(company, 'name').id = `company-name-${company.id}`;
+      card.setAttribute('aria-labelledby', `company-name-${company.id}`);
+      element(company, 'monogram').textContent = company.usTicker.slice(0, 2);
+      element(company, 'us-ticker').textContent = company.usTicker;
       element(company, 'ratio').textContent = company.ratioLabel;
       element(company, 'kr-label').textContent = `한국 KRX · ${company.krCode}`;
       element(company, 'us-label').textContent = `미국 ${company.usExchange} · ${company.usTicker}`;
@@ -84,6 +89,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
       container.append(card);
     }
     if (cards.size) $('companyLoading')?.remove();
+    $('companyCount').textContent = `${cards.size}개 기업`;
     applyPreferences();
   }
   function summaryIssue(company, message) {
@@ -96,6 +102,8 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
   }
   function issue(company, message) {
     summaryIssue(company, '비교 불가');
+    element(company, 'summary-fair-adr').textContent = '—';
+    element(company, 'summary-adr').textContent = '—';
     element(company, 'summary-kr-time').textContent = message;
     element(company, 'summary-us-time').textContent = '';
     for (const side of ['kr', 'us']) {
@@ -114,6 +122,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     const text = (role, value) => { element(company, role).textContent = value; };
     text('kr-price', money(values.krw, 'KRW')); text('us-price', money(values.adr, 'USD'));
     text('kr-usd', money(values.fairAdr, 'USD')); text('us-krw', money(values.impliedKrw, 'KRW'));
+    text('summary-fair-adr', money(values.fairAdr, 'USD')); text('summary-adr', money(values.adr, 'USD'));
     text('kr-time', quoteTime(kr)); text('us-time', quoteTime(us));
     element(company, 'kr-gap').innerHTML = `ADR 원화 환산가보다<br><strong>${Math.abs(values.koreaGap).toFixed(2)}% (${money(values.krwDifference, 'KRW')})</strong> <span class="gap-direction">${values.koreaGap >= 0 ? '높은' : '낮은'}</span> 상태입니다.`;
     element(company, 'us-gap').innerHTML = `${escapeHtml(company.name)} 달러 환산가보다<br><strong>${Math.abs(values.adrGap).toFixed(2)}% (${money(values.usdDifference, 'USD')})</strong> <span class="gap-direction">${values.adrGap >= 0 ? '높은' : '낮은'}</span> 상태입니다.`;
@@ -154,7 +163,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     const task = { force, controller };
     active = task;
     $('refresh').disabled = true;
-    $('refresh').textContent = '업데이트 중…';
+    $('refreshLabel').textContent = '업데이트 중…';
     task.promise = (async () => {
       try {
         const market = await api(force ? '/api/market?force=1' : '/api/market?company=sk-hynix', controller.signal);
@@ -175,7 +184,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
         if (active === task) {
           active = null;
           $('refresh').disabled = false;
-          $('refresh').textContent = '새로고침';
+          $('refreshLabel').textContent = '새로고침';
         }
       }
     })();

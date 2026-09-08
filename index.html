@@ -38,7 +38,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/styles.css" />
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-W3HTBNLT');</script>
@@ -48,51 +48,60 @@
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W3HTBNLT" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <main>
-    <header><div><div class="eyebrow">ADR GAP MONITOR</div><h1>ADR 괴리율 모니터</h1><p class="subtitle">국내와 미국 ADR 상장된 기업의 주가를 비교합니다.</p></div><div class="refresh-control"><button id="refresh">새로고침</button><p class="refresh-status" id="lastRefreshAt" aria-live="polite">마지막 새로고침: 확인 중</p></div></header>
-    <section class="ad-banner" aria-label="광고"><span>광고</span></section>
-    <aside class="fx-card" aria-label="환율"><div class="timestamp" id="fxTime">환율: 1 USD당 원화</div><div class="timestamp" id="fxUpdatedAt">기준: 확인 중</div></aside>
+  <div class="site-nav"><div class="nav-inner"><a class="brand" href="/" aria-label="ADR 괴리율 모니터 홈"><span>ADR<span class="brand-light">GAP</span></span></a><a class="nav-guide" href="/what-is-adr-gap/" data-track-content="adr_guide" data-link-placement="home_interpretation_help">계산 가이드 <svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a></div></div>
+  <main class="dashboard">
+    <header class="page-heading">
+      <div><p class="eyebrow">한국 주식 · 미국 ADR</p><h1>ADR 괴리율 모니터</h1><p class="subtitle">국내 주식과 미국 ADR의 가격을 같은 기준으로 비교합니다.</p></div>
+      <button id="refresh" type="button" aria-label="시세 새로고침"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.1a8 8 0 0 1 13.3 3.4M4.6 14.5a8 8 0 0 0 13.3 3.4"/></svg><span id="refreshLabel">새로고침</span></button>
+    </header>
+    <section class="market-toolbar" aria-label="비교에 적용한 환율">
+      <div class="fx-card"><span class="fx-symbol" aria-hidden="true">₩</span><div><p class="toolbar-label">적용 환율 <span>USD / KRW</span></p><div id="fxTime">환율: 1 USD당 원화</div><div class="timestamp" id="fxUpdatedAt">기준: 확인 중</div></div></div>
+      <div class="data-context"><span class="source-label">Yahoo Finance<span class="data-type">지연 시세</span></span><p class="refresh-status" id="lastRefreshAt" aria-live="polite">마지막 새로고침: 확인 중</p></div>
+    </section>
+    <p id="status" class="status-message" hidden aria-live="polite"></p>
     <section class="comparison" aria-labelledby="comparisonTitle">
-      <div class="comparison-heading"><h2 id="comparisonTitle">기업별 비교</h2><p>관심·펼침 설정은 이 브라우저에만 저장됩니다.</p></div>
-      <section class="company-list" id="companyList" aria-label="ADR 가격 비교"><p id="companyLoading">가격을 불러오는 중</p></section>
+      <div class="comparison-heading"><div><h2 id="comparisonTitle">기업별 비교</h2><span class="company-count" id="companyCount">확인 중</span></div><p>관심·펼침 설정은 이 브라우저에 저장됩니다.</p></div>
+      <div class="comparison-surface">
+        <div class="comparison-columns" aria-hidden="true"><span>기업 / ADR 비율</span><span>국내 환산가 · USD</span><span>미국 ADR · USD</span><span>ADR 괴리율</span><span></span></div>
+        <section class="company-list" id="companyList" aria-label="ADR 가격 비교"><p id="companyLoading">가격을 불러오는 중</p></section>
+      </div>
     </section>
     <template id="companyTemplate">
       <section class="stock-component">
         <div class="company-heading">
-          <div class="company-identity"><h2 class="company-title" data-role="name"></h2><span class="badge" data-role="ratio"></span></div>
-          <div class="company-summary">
-            <p class="summary-heading">ADR이 국내 환산가 대비</p>
-            <p class="summary-value" data-role="summary">확인 중</p>
-            <p class="summary-times"><span data-role="summary-kr-time"></span><span data-role="summary-us-time"></span></p>
-          </div>
+          <div class="company-identity"><span class="company-monogram" data-role="monogram" aria-hidden="true"></span><div><h2 class="company-title" data-role="name"></h2><span class="badge" data-role="ratio"></span></div></div>
+          <div class="quote-cell"><span class="cell-label">국내 환산가 · USD</span><span class="quote-value" data-role="summary-fair-adr">—</span><span class="quote-basis">ADR 1주 기준</span></div>
+          <div class="quote-cell"><span class="cell-label">미국 ADR · USD</span><span class="quote-value" data-role="summary-adr">—</span><span class="quote-basis" data-role="us-ticker"></span></div>
+          <div class="company-summary"><span class="cell-label">ADR 괴리율</span><p class="summary-value" data-role="summary">확인 중</p><span class="summary-heading">국내 환산가 대비</span></div>
           <div class="company-actions">
-            <button class="pin-company" data-role="pin" type="button" aria-pressed="false"><span aria-hidden="true">☆</span></button>
-            <button class="toggle-company" type="button" data-role="toggle" aria-expanded="false">펼치기</button>
+            <button class="pin-company" data-role="pin" type="button" aria-pressed="false"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg></button>
+            <button class="toggle-company" type="button" data-role="toggle" aria-expanded="false"><span data-role="toggle-label">상세</span><svg class="icon chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
           </div>
         </div>
+        <div class="summary-times"><span data-role="summary-kr-time"></span><span data-role="summary-us-time"></span></div>
         <section class="stock-prices" data-role="content" aria-label="시세와 환산가" hidden>
-          <article class="stock-price">
-            <div class="stock-meta"><h3 class="label">국내 시세</h3><p class="ticker" data-role="kr-label"></p><div class="timestamp" data-role="kr-time">가격을 불러오는 중</div></div>
-            <div class="price-pair"><span class="value" data-role="kr-price">—</span><div class="conversion"><span class="conversion-label">ADR 1주 기준 · 달러 환산가</span><span class="value converted" data-role="kr-usd">—</span></div></div>
-            <div class="gap-highlight"><p class="gap-sentence" data-role="kr-gap">ADR 환산가와의 차이를 계산합니다.</p></div>
-          </article>
-          <article class="stock-price">
-            <div class="stock-meta"><h3 class="label">미국 ADR 시세</h3><p class="ticker" data-role="us-label"></p><div class="timestamp" data-role="us-time">가격을 불러오는 중</div></div>
-            <div class="price-pair"><span class="value" data-role="us-price">—</span><div class="conversion"><span class="conversion-label">국내 주식 1주 기준 · 원화 환산가</span><span class="value converted" data-role="us-krw">—</span></div></div>
-            <div class="gap-highlight"><p class="gap-sentence" data-role="us-gap">국내 환산가와의 차이를 계산합니다.</p></div>
-          </article>
+          <div class="detail-heading"><span>가격 상세</span><span>시장별 원본 시세와 환산 기준</span></div>
+          <div class="detail-grid">
+            <article class="stock-price">
+              <div class="stock-meta"><h3 class="label">국내 시세</h3><p class="ticker" data-role="kr-label"></p></div>
+              <div class="price-pair"><span class="value" data-role="kr-price">—</span><div class="timestamp" data-role="kr-time">가격을 불러오는 중</div><div class="conversion"><span class="conversion-label">ADR 1주 기준 · 달러 환산가</span><span class="value converted" data-role="kr-usd">—</span></div></div>
+              <p class="gap-sentence secondary-gap" data-role="kr-gap">ADR 환산가와의 차이를 계산합니다.</p>
+            </article>
+            <article class="stock-price">
+              <div class="stock-meta"><h3 class="label">미국 ADR 시세</h3><p class="ticker" data-role="us-label"></p></div>
+              <div class="price-pair"><span class="value" data-role="us-price">—</span><div class="timestamp" data-role="us-time">가격을 불러오는 중</div><div class="conversion"><span class="conversion-label">국내 주식 1주 기준 · 원화 환산가</span><span class="value converted" data-role="us-krw">—</span></div></div>
+              <p class="gap-sentence" data-role="us-gap">국내 환산가와의 차이를 계산합니다.</p>
+            </article>
+          </div>
         </section>
       </section>
     </template>
-    <section class="coverage" aria-labelledby="coverageTitle">
-      <h2 id="coverageTitle">비교 대상 기업</h2>
-      <p>SK하이닉스, KB금융, 신한금융, POSCO홀딩스, 우리금융지주, 한국전력, SK텔레콤, KT, LG디스플레이의 한국 주식과 미국 ADR 가격을 비교합니다.</p>
-    </section>
     <section class="guide-help" aria-labelledby="guideHelpTitle">
-      <h2 id="guideHelpTitle">괴리율 계산 기준</h2>
-      <p>ADR 가격·환율·ADR 비율을 이용한 비교 방식과 가격 기준 시각, 시장 상태를 확인하세요. <a href="/what-is-adr-gap/" data-track-content="adr_guide" data-link-placement="home_interpretation_help">계산 방법과 유의사항 보기</a></p>
+      <div class="guide-icon" aria-hidden="true">?</div><div><h2 id="guideHelpTitle">괴리율은 어떻게 계산하나요?</h2><p>ADR 비율과 환율, 두 시장의 기준 시각을 함께 확인하세요.</p></div><a href="/what-is-adr-gap/" data-track-content="adr_guide" data-link-placement="home_interpretation_help">계산 방법과 유의사항 <svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
     </section>
-    <p id="status" hidden aria-live="polite"></p>
+    <section class="coverage" aria-labelledby="coverageTitle">
+      <h2 id="coverageTitle">비교 대상 기업</h2><p>SK하이닉스, KB금융, 신한금융, POSCO홀딩스, 우리금융지주, 한국전력, SK텔레콤, KT, LG디스플레이의 한국 주식과 미국 ADR 가격을 비교합니다.</p>
+    </section>
     <footer class="footer">
       <p>본 서비스의 가격·환율은 참고용 지연 시세이며 실제 거래 가격과 다를 수 있습니다.</p>
       <p>ADR 비율, 기업행동, 환율, 거래 시간, 유동성 및 전환 비용에 따라 표시된 괴리율과 실제 전환·거래 결과는 달라질 수 있습니다.</p>
