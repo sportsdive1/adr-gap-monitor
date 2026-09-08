@@ -44,7 +44,9 @@ export async function fetchYahoo(fetchFn, symbol, includePrePost, timeoutMs) {
   try {
     return await Promise.race([
       (async () => {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1m${includePrePost ? '&includePrePost=true' : ''}`;
+        // ADRs can have no bars yet today; retain the latest prior-session bar.
+        const range = includePrePost ? '5d' : '1d';
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1m${includePrePost ? '&includePrePost=true' : ''}`;
         const response = await fetchFn(url, { headers: { 'user-agent': 'Mozilla/5.0' }, signal: controller.signal });
         if (!response.ok) throw new Error(`Yahoo Finance returned ${response.status}`);
         return response.json();

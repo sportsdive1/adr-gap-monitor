@@ -49,6 +49,54 @@ test('fallback validates price and matching time together, including unequal arr
   assert.throws(() => parseFx(chart({})));
 });
 
+test('ADRs with no bars today use prior-session data in one request and preserve source time', async () => {
+  const requests = [];
+  const priorTime = Date.parse('2026-09-04T23:30:00Z') / 1000;
+  const prices = { KB: 128.68, SHG: 82.28 };
+  const service = createMarketService(companies, { fetchFn: async rawUrl => {
+    const url = new URL(rawUrl);
+    requests.push(url);
+    const symbol = decodeURIComponent(url.pathname.split('/').at(-1));
+    const meta = { regularMarketPrice: prices[symbol] - 1, regularMarketTime: priorTime - 3600 };
+    // The current day has metadata but no traded bars, as observed for KB and SHG.
+    if (url.searchParams.get('range') === '1d') return reply({ meta });
+    return reply({
+      meta,
+      timestamp: [priorTime - 60, priorTime, seconds],
+      indicators: { quote: [{ close: [prices[symbol] - 0.1, prices[symbol], null] }] }
+    });
+  } });
+  for (const symbol of ['KB', 'SHG']) {
+    const before = requests.length;
+    const first = await service.getQuote(symbol);
+    assert.equal(first.error, undefined);
+    assert.equal(first.quote.price, prices[symbol]);
+    assert.equal(first.quote.timestamp, new Date(priorTime * 1000).toISOString());
+    assert.equal(first.quote.extendedHoursIncluded, true);
+    assert.equal(quoteSessionLabel(first.quote), '시간외 시세');
+    assert.equal(requests.length, before + 1);
+    assert.deepEqual(await service.getQuote(symbol), first);
+    assert.equal(requests.length, before + 1, 'normal read uses the cache');
+    assert.deepEqual(await service.getQuote(symbol, true), first);
+    assert.equal(requests.length, before + 2, 'manual refresh uses one new request');
+  }
+  assert.ok(requests.every(url => url.searchParams.get('range') === '5d'
+    && url.searchParams.get('interval') === '1m'
+    && url.searchParams.get('includePrePost') === 'true'));
+});
+
+test('empty five-day ADR data keeps the existing failure handling without retries', async () => {
+  let calls = 0;
+  const service = createMarketService(companies, { fetchFn: async () => {
+    calls++;
+    return reply({ meta: bar(128.68).meta, timestamp: [seconds], indicators: { quote: [{ close: [null] }] } });
+  } });
+  const result = await service.getQuote('KB', true);
+  assert.match(result.error, /No Yahoo Finance price data/);
+  assert.equal(result.quote, undefined);
+  assert.equal(calls, 1);
+});
+
 test('normal quote and FX TTLs stay at one minute and one hour; force bypasses both', async () => {
   let now = 0, calls = 0;
   const service = createMarketService(companies, { now: () => now, fetchFn: async () => { calls++; return reply(bar()); } });
@@ -142,6 +190,11 @@ test('unsupported inputs make no upstream requests; ADR alone includes extended 
   await service.getMarketData('sk-hynix', true);
   assert.equal(urls.filter(url => url.includes('includePrePost=true')).length, 1);
   assert.ok(urls.find(url => url.includes('/SKHY?')).includes('includePrePost=true'));
+  for (const rawUrl of urls) {
+    const url = new URL(rawUrl);
+    assert.equal(url.searchParams.get('range'), url.pathname.endsWith('/SKHY') ? '5d' : '1d');
+    assert.equal(url.searchParams.get('interval'), '1m');
+  }
 });
 
 test('all cards share comparison math, validation and existing session labels', () => {

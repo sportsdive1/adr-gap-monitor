@@ -39,12 +39,11 @@ h1{font-size:clamp(1.625rem,3vw,2rem);line-height:1.35;font-weight:700;letter-sp
 .comparison-heading h2{font-size:1rem;margin:0;font-weight:700;letter-spacing:-.035em}
 .company-count{background:#e8edf5;color:#5c6b83;padding:2px 7px;border-radius:5px;font-size:.75rem;white-space:nowrap}
 .comparison-heading p{margin:0;font-size:.75rem;color:var(--muted)}
-.comparison-surface{border:1px solid var(--line);border-radius:var(--radius);background:white;overflow:hidden;box-shadow:0 3px 12px #17203303}
-.comparison-columns{display:grid;grid-template-columns:var(--columns);gap:20px;padding:14px 24px;background:#f9fafc;border-bottom:1px solid var(--line);color:var(--muted);font-size:.75rem}
+.company-list{display:grid;gap:14px}
+.comparison-columns{display:grid;grid-template-columns:var(--columns);gap:20px;padding:12px 24px;margin-bottom:10px;border:1px solid transparent;color:var(--muted);font-size:.75rem}
 .comparison-columns>span:nth-child(2),.comparison-columns>span:nth-child(3){text-align:right}
 .comparison-columns>span:nth-child(4){text-align:center}
-.stock-component{position:relative;min-width:0;padding:18px 24px;border-bottom:1px solid var(--line)}
-.stock-component:last-child{border-bottom:0}
+.stock-component{position:relative;min-width:0;padding:18px 24px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
 .stock-component[data-pinned="true"]{box-shadow:inset 3px 0 var(--accent)}
 .stock-component[data-expanded="true"]{background:#fafbfe}
 .company-heading{display:grid;grid-template-columns:var(--columns);align-items:center;gap:20px}
@@ -146,10 +145,7 @@ h1{font-size:clamp(1.625rem,3vw,2rem);line-height:1.35;font-weight:700;letter-sp
   .comparison-heading{align-items:center;margin-bottom:12px}.comparison-heading p{display:none}.comparison-heading h2{font-size:.9375rem}
   .comparison-heading>div{gap:7px}.company-count{font-size:.75rem;padding:1px 6px}
   .comparison-columns{display:none}
-  .comparison-surface{border:0;border-radius:0;background:transparent;overflow:visible;box-shadow:none}
-  .company-list{display:grid;gap:14px}
-  .stock-component{padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
-  .stock-component:last-child{border-bottom:1px solid var(--line)}
+  .stock-component{padding:16px}
   .company-heading{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.08fr);gap:14px 10px}
   .company-identity{grid-column:1/3;grid-row:1;gap:10px}.company-monogram{display:grid;width:40px;height:34px;font-size:.6875rem;border-radius:9px}
   .company-title{font-size:.9375rem}.badge{font-size:.75rem}

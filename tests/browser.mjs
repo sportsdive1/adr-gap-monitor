@@ -77,6 +77,14 @@ try {
     assert.equal(await page.locator('.brand-mark, .brand svg, .brand img').count(), 0);
     const currentLayout = await layout();
     assert.equal(currentLayout.overflow, false, `${label}: horizontal overflow`);
+    const cardLayout = await page.locator('#companyList > .stock-component').evaluateAll(cards => cards.map(card => {
+      const box = card.getBoundingClientRect();
+      const style = getComputedStyle(card);
+      return { top: box.top, bottom: box.bottom, border: style.borderBottomWidth, radius: style.borderRadius };
+    }));
+    assert.equal(cardLayout.length, 9);
+    assert.ok(cardLayout.every(card => card.border === '1px' && parseFloat(card.radius) > 0), `${label}: individually bordered cards`);
+    assert.ok(cardLayout.slice(1).every((card, index) => Math.abs(card.top - cardLayout[index].bottom - 14) < 1), `${label}: 14px gaps between companies`);
     assert.deepEqual(requests, ['/api/market?company=sk-hynix', '/api/market']);
     for (const company of marketFixture().companies) {
       const data = marketFixture();
