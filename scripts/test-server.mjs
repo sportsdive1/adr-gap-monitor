@@ -11,7 +11,7 @@ const server = createServer(async (req, res) => {
     }
     // Browser tests must mock every API call. Never query Yahoo or production analytics.
     if (req.url.startsWith('/api/')) { res.writeHead(500); res.end('{"error":"Unmocked test API request"}'); return; }
-    const response = await worker.fetch(new Request(`http://127.0.0.1${req.url}`));
+    const response = await worker.fetch(new Request(`http://${req.headers.host}${req.url}`));
     res.writeHead(response.status, Object.fromEntries(response.headers));
     res.end(Buffer.from(await response.arrayBuffer()));
   } catch (error) { res.writeHead(500); res.end(error.message); }

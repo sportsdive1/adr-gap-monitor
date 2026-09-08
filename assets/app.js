@@ -9,7 +9,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
   const $ = id => document.getElementById(id);
   const container = $('companyList');
   const preferences = readPreferences(() => window.localStorage.getItem(PREFERENCES_KEY));
-  const cards = new Map();
+  const cards = new Map([...container.querySelectorAll('.stock-component[data-company-id]')].map(card => [card.dataset.companyId, card]));
   let active = null;
   let background = null;
   let generation = 0;
@@ -66,39 +66,16 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     });
     if (focused && container.contains(focused) && focused !== document.activeElement) focused.focus({ preventScroll: true });
   }
-  function buildCards(companies) {
-    for (const company of companies) {
-      if (cards.has(company.id)) continue;
-      const card = $('companyTemplate').content.firstElementChild.cloneNode(true);
-      card.dataset.pair = `${company.krCode}-${company.usTicker}`;
-      card.dataset.companyId = company.id;
-      card.dataset.name = company.name;
-      cards.set(company.id, card);
-      element(company, 'name').textContent = company.name;
-      element(company, 'name').id = `company-name-${company.id}`;
-      card.setAttribute('aria-labelledby', `company-name-${company.id}`);
-      element(company, 'monogram').textContent = company.usTicker;
-      element(company, 'us-ticker').textContent = company.usTicker;
-      element(company, 'ratio').textContent = company.ratioLabel;
-      element(company, 'kr-label').textContent = `한국 KRX · ${company.krCode}`;
-      element(company, 'us-label').textContent = `미국 ${company.usExchange} · ${company.usTicker}`;
-      const contentId = `prices-${company.id}`;
-      element(company, 'content').id = contentId;
-      element(company, 'toggle').setAttribute('aria-controls', contentId);
-      if (company.id === MAIN_ID) for (const [role, id] of Object.entries(mainRoles)) element(company, role).id = id;
-      container.append(card);
-    }
-    if (cards.size) $('companyLoading')?.remove();
-    $('companyCount').textContent = `${cards.size}개 기업`;
-    applyPreferences();
-  }
+  if (cards.has(MAIN_ID)) for (const [role, id] of Object.entries(mainRoles)) element({ id: MAIN_ID }, role).id = id;
   function summaryIssue(company, message) {
     element(company, 'summary').textContent = message;
     cards.get(company.id).dataset.summaryState = 'unavailable';
   }
   function failedRefresh() {
-    for (const id of cards.keys()) summaryIssue({ id }, '갱신 실패 · 이전 표시');
-    if ($('companyLoading')) $('companyLoading').textContent = QUOTE_ERROR;
+    for (const id of cards.keys()) {
+      if (element({ id }, 'summary-adr').textContent !== '—') summaryIssue({ id }, '갱신 실패 · 이전 표시');
+      else issue({ id }, QUOTE_ERROR);
+    }
   }
   function issue(company, message) {
     summaryIssue(company, '비교 불가');
@@ -136,13 +113,13 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
 
   function renderMarket(market) {
     if (!Array.isArray(market.companies)) throw new Error(MARKET_ERROR);
-    buildCards(market.companies);
     if (validFx(market.fx)) {
       $('fxTime').textContent = `환율: 1 USD = ${market.fx.rates.KRW.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원`;
       $('fxUpdatedAt').textContent = `기준: ${timeLabel(market.fx.updatedAt)}`;
     }
     let mainHealthy = false;
     for (const company of market.companies) {
+      if (!cards.has(company.id)) continue;
       const healthy = renderCompany(company, market);
       if (company.id === MAIN_ID) {
         $('mainRatio').textContent = company.ratioLabel;
@@ -215,6 +192,8 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     const link = event.target.closest('[data-track-content]');
     if (link) track('select_content', { content_type: 'navigation', item_id: link.dataset.trackContent, link_placement: link.dataset.linkPlacement });
   });
+  applyPreferences();
+  for (const button of container.querySelectorAll('button[data-role]')) button.disabled = false;
   return {
     refresh,
     start() { interval = window.setInterval(() => refresh(), 60 * 60 * 1000); return refresh(); },

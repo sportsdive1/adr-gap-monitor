@@ -58,7 +58,7 @@ try {
     });
 
     async function ready() {
-      await page.waitForFunction(() => document.querySelectorAll('#companyList .stock-component').length === 9 && document.querySelector('[data-role="kr-price"]')?.textContent !== '—');
+      await page.waitForFunction(() => document.querySelectorAll('#companyList .stock-component').length === 9 && [...document.querySelectorAll('[data-role="kr-price"]')].every(element => element.textContent !== '—'));
       await page.locator('#refresh:not([disabled])').waitFor();
     }
     async function layout() {
@@ -71,8 +71,21 @@ try {
       }));
     }
 
-    requests = []; errors.length = 0;
-    await page.goto(url); await ready();
+    requests = []; errors.length = 0; mode = 'hold';
+    await page.goto(url + '/index.html?utm_source=local-test');
+    assert.equal(page.url(), url + '/?utm_source=local-test');
+    await page.waitForFunction(() => document.querySelectorAll('#companyList .stock-component').length === 9);
+    assert.equal(await page.locator('#companyCount').innerText(), '9개 기업');
+    assert.ok((await page.locator('[data-role="summary-adr"]').allTextContents()).every(value => value === '—'));
+    await page.locator('#companyList > .stock-component').first().evaluate(card => { window.__initialCard = card; });
+    const initialDeadline = Date.now() + 5000;
+    while (!heldResolve && Date.now() < initialDeadline) await new Promise(resolve => setTimeout(resolve, 10));
+    assert.ok(heldResolve, 'Initial API request reached the controlled delay');
+    mode = 'valid'; heldResolve(); heldResolve = undefined;
+    await ready();
+    assert.equal(await page.locator('#companyList > .stock-component').first().evaluate(card => card === window.__initialCard), true, 'Reuse server-rendered cards');
+    const ids = await page.locator('[id]').evaluateAll(elements => elements.map(element => element.id));
+    assert.equal(new Set(ids).size, ids.length, 'No duplicate IDs after initialization');
     assert.equal(await page.locator('.brand').innerText(), 'ADRGAP');
     assert.equal(await page.locator('.brand-mark, .brand svg, .brand img').count(), 0);
     const currentLayout = await layout();
@@ -209,12 +222,33 @@ try {
     await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
     assert.deepEqual(requests, ['/api/market?force=1']);
 
+    // Initial API failure leaves stable company metadata, without implying previous prices exist.
+    mode = 'error'; requests = [];
+    await page.reload();
+    await page.locator('#refresh:not([disabled])').waitFor();
+    assert.equal(await page.locator('#companyList > .stock-component').count(), 9);
+    assert.ok((await page.locator('[data-role="summary"]').allTextContents()).every(value => value === '비교 불가'));
+    assert.ok((await page.locator('[data-role="summary-adr"]').allTextContents()).every(value => value === '—'));
+    assert.deepEqual(requests, ['/api/market?company=sk-hynix']);
+    await page.screenshot({ path: `test-results/seo-initial-error-${label}.png` });
+    mode = 'valid'; requests = [];
+    await page.locator('#refresh').click(); await ready();
+    assert.deepEqual(requests, ['/api/market?force=1']);
+    assert.equal(await page.locator('#status').isVisible(), false);
+    await first.locator('[data-role="toggle"]').click();
+
     await page.setViewportSize({ width: 320, height: 844 });
     assert.equal((await layout()).overflow, false, '320px overflow');
     // Text-only enlargement, not screenshot scaling.
     await page.addStyleTag({ content: 'html{font-size:200%!important}' });
     assert.equal((await layout()).overflow, false, '200% text overflow');
     assert.equal(await first.locator('[data-role="toggle"]').isVisible(), true);
+    await page.goto(url + '/what-is-adr-gap/');
+    await page.setViewportSize(viewport);
+    await page.screenshot({ path: `test-results/seo-guide-${label}.png`, fullPage: true });
+    await page.locator('#example').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/seo-guide-example-${label}.png` });
+    await page.setViewportSize({ width: 320, height: 844 });
     // Shared document styles must preserve the existing content and navigation.
     for (const route of ['/what-is-adr-gap/', '/terms.html', '/privacy.html']) {
       const docResponse = await page.goto(url + route);
@@ -231,8 +265,32 @@ try {
       }
     }
     assert.deepEqual(errors, []);
-    results.push({ viewport: label, passed: true, initialApiRequests: 2, manualApiRequests: 1, scenarios: ['nine summaries / two comparable USD prices', 'separate source times / US session policy', 'layout / 44px controls / 320px / 200% text', 'toggle / analytics ID', 'force / unchanged source time', 'error recovery / invalid / stale / partial', 'request supersession', 'pin / unpin / focus / keyboard', 'collapsed defaults / preference reload', 'corrupt / unknown / blocked storage', 'shared guide / policy styling and navigation'] });
+    results.push({ viewport: label, passed: true, initialApiRequests: 2, manualApiRequests: 1, scenarios: ['nine summaries / two comparable USD prices', 'individual cards / 14px gaps', 'separate source times / US session policy', 'layout / 44px controls / 320px / 200% text', 'toggle / analytics ID', 'force / unchanged source time', 'error recovery / invalid / stale / partial', 'request supersession', 'pin / unpin / focus / keyboard', 'collapsed defaults / preference reload', 'corrupt / unknown / blocked storage', 'shared guide / policy styling and navigation'] });
     await context.close();
+
+    const noJs = await browser.newContext({ viewport, javaScriptEnabled: false, locale: 'ko-KR' });
+    const noJsPage = await noJs.newPage();
+    let noJsApiCalls = 0;
+    await noJsPage.route('**/*', route => {
+      const target = new URL(route.request().url());
+      if (target.pathname.startsWith('/api/')) noJsApiCalls++;
+      return target.origin !== url || target.pathname.startsWith('/api/') ? route.abort() : route.continue();
+    });
+    await noJsPage.goto(url);
+    assert.equal(await noJsPage.locator('#companyList > .stock-component').count(), 9);
+    for (const company of marketFixture().companies) {
+      const card = noJsPage.locator(`[data-company-id="${company.id}"]`);
+      assert.equal(await card.locator('[data-role="name"]').innerText(), company.name);
+      assert.equal(await card.locator('[data-role="ratio"]').innerText(), company.ratioLabel);
+      assert.equal(await card.locator('[data-role="us-ticker"]').innerText(), company.usTicker);
+    }
+    assert.equal(await noJsPage.locator('button:not([disabled])').count(), 0);
+    assert.equal(await noJsPage.locator('.comparison noscript').isVisible(), true);
+    assert.equal(await noJsPage.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.equal(noJsApiCalls, 0);
+    await noJsPage.screenshot({ path: `test-results/seo-nojs-${label}.png` });
+    results.push({ viewport: label, seoPassed: true, noJsApiCalls, scenarios: ['initial HTML / delayed API / DOM reuse', 'initial API failure / manual recovery', 'no-JS metadata / disabled controls', 'redirect query preservation', 'guide example / mobile layout'] });
+    await noJs.close();
   }
   console.log(JSON.stringify(results, null, 2));
   await writeFile('test-results/browser-results.json', JSON.stringify(results, null, 2));

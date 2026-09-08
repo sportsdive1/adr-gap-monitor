@@ -9,7 +9,7 @@ const { default: worker } = await import('../worker.js');
 const request = path => worker.fetch(new Request(`https://example.test${path}`));
 
 test('Worker serves all existing pages and extracted assets with correct content types', async () => {
-  for (const path of ['/', '/index.html', '/terms.html', '/privacy.html', '/what-is-adr-gap/', '/what-is-adr-gap']) {
+  for (const path of ['/', '/terms.html', '/privacy.html', '/what-is-adr-gap/']) {
     const response = await request(path);
     assert.equal(response.status, 200, path);
     assert.match(response.headers.get('content-type'), /text\/html/);

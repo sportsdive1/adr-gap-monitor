@@ -10,7 +10,9 @@ import modelJs from './assets/model.js';
 import stylesCss from './assets/styles.css';
 
 import { createMarketService } from './src/market-service.js';
+import { renderHome } from './src/render-home.js';
 
+const homePage = renderHome(indexHtml, companies);
 const { getQuote, getFx, getMarketData } = createMarketService(companies);
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 const html = content => new Response(content, { headers: { 'content-type': 'text/html; charset=utf-8' } });
@@ -19,14 +21,23 @@ const text = (content, contentType) => new Response(content, { headers: { 'conte
 export default {
   async fetch(request) {
     const url = new URL(request.url);
+    const canonical = new URL(url);
+    if (['adrgap.com', 'www.adrgap.com'].includes(canonical.hostname)) {
+      canonical.protocol = 'https:';
+      canonical.hostname = 'adrgap.com';
+      canonical.port = '';
+    }
+    if (canonical.pathname === '/index.html') canonical.pathname = '/';
+    if (canonical.pathname === '/what-is-adr-gap') canonical.pathname = '/what-is-adr-gap/';
+    if (canonical.href !== url.href) return Response.redirect(canonical.href, 308);
     if (!url.pathname.startsWith('/api/')) {
       if (url.pathname === '/assets/app.js') return text(appJs, 'application/javascript; charset=utf-8');
       if (url.pathname === '/assets/model.js') return text(modelJs, 'application/javascript; charset=utf-8');
       if (url.pathname === '/assets/styles.css') return text(stylesCss, 'text/css; charset=utf-8');
-      if (url.pathname === '/' || url.pathname === '/index.html') return html(indexHtml);
+      if (url.pathname === '/') return html(homePage);
       if (url.pathname === '/terms.html') return html(termsHtml);
       if (url.pathname === '/privacy.html') return html(privacyHtml);
-      if (url.pathname === '/what-is-adr-gap/' || url.pathname === '/what-is-adr-gap') return html(adrGapGuideHtml);
+      if (url.pathname === '/what-is-adr-gap/') return html(adrGapGuideHtml);
       if (url.pathname === '/robots.txt') return text(robotsTxt, 'text/plain; charset=utf-8');
       if (url.pathname === '/sitemap.xml') return text(sitemapXml, 'application/xml; charset=utf-8');
       return new Response('Not found', { status: 404 });
