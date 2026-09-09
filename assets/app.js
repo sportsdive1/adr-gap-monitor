@@ -79,8 +79,9 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
   }
   function issue(company, message) {
     summaryIssue(company, '비교 불가');
-    element(company, 'summary-fair-adr').textContent = '—';
-    element(company, 'summary-adr').textContent = '—';
+    for (const role of ['summary-fair-adr', 'summary-adr', 'kr-price', 'us-price', 'kr-usd', 'us-krw']) {
+      element(company, role).textContent = '—';
+    }
     element(company, 'summary-kr-time').textContent = message;
     element(company, 'summary-us-time').textContent = '';
     for (const side of ['kr', 'us']) {

@@ -48,8 +48,12 @@ try {
         await new Promise(resolve => { heldResolve = resolve; });
       }
       if (mode === 'invalid') { data.quotes['000660'].price = 0; data.quotes['105560'].price = 0; }
+      if (mode === 'missingFx') data.fx = null;
+      if (mode === 'invalidFx') data.fx.rates.KRW = 0;
       if (mode === 'staleFx') { data.fx.stale = true; data.errors.fx = { message: 'mock FX failure' }; }
+      if (mode === 'staleQuote') { data.quotes.KB.stale = true; data.errors.KB = { message: 'mock quote failure' }; }
       if (mode === 'partial') { delete data.quotes.WF; data.errors.WF = { message: 'mock quote failure' }; }
+      if (mode === 'partialKr') { delete data.quotes['105560']; data.errors['105560'] = { message: 'mock quote failure' }; }
       if (target.pathname === '/api/companies') { await route.fulfill({ json: { companies: data.companies } }); return; }
       if (target.searchParams.get('company')) data.companies = data.companies.filter(c => c.id === 'sk-hynix');
       await route.fulfill({ json: data }).catch(error => {
@@ -69,6 +73,30 @@ try {
           const r = e.getBoundingClientRect(); return [r.x, r.y, r.width, r.height];
         })
       }));
+    }
+
+    const priceRoles = ['summary-fair-adr', 'summary-adr', 'kr-price', 'us-price', 'kr-usd', 'us-krw'];
+    const priceValues = card => card.evaluate((element, roles) => roles.map(role => element.querySelector(`[data-role="${role}"]`).textContent), priceRoles);
+    async function assertCleared(card) {
+      assert.deepEqual(await priceValues(card), priceRoles.map(() => '—'), `${label}: ${mode} clears summary and detail prices`);
+      assert.equal(await card.locator('[data-role="summary"]').innerText(), '비교 불가');
+      for (const side of ['kr', 'us']) {
+        assert.match(await card.locator(`[data-role="${side}-time"]`).textContent(), /불러오지 못했습니다/);
+        assert.doesNotMatch(await card.locator(`[data-role="${side}-gap"]`).textContent(), /%|NaN|Infinity/);
+      }
+    }
+    async function assertRestored() {
+      const data = marketFixture(offset);
+      for (const company of data.companies) {
+        const card = page.locator(`[data-company-id="${company.id}"]`);
+        const values = compare(data.quotes[company.krCode], data.quotes[company.usTicker], data.fx.rates.KRW, company.commonPerAdr);
+        assert.deepEqual(await priceValues(card), [money(values.fairAdr, 'USD'), money(values.adr, 'USD'), money(values.krw, 'KRW'), money(values.adr, 'USD'), money(values.fairAdr, 'USD'), money(values.impliedKrw, 'KRW')]);
+        assert.equal(await card.locator('[data-role="summary"]').innerText(), gapSummary(values.adrGap));
+        assert.equal(await card.getAttribute('data-summary-state'), 'valid');
+        assert.match(await card.locator('[data-role="kr-time"]').textContent(), /기준:.*정규장/);
+        assert.match(await card.locator('[data-role="us-time"]').textContent(), /기준:.*시간외/);
+        for (const side of ['kr', 'us']) assert.match(await card.locator(`[data-role="${side}-gap"]`).textContent(), /%/);
+      }
     }
 
     requests = []; errors.length = 0; mode = 'hold';
@@ -134,28 +162,61 @@ try {
     await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
     assert.equal(await page.locator('#krwTime').innerText(), unchanged);
 
+    const beforeNetworkError = await priceValues(first);
+    const beforeNetworkTime = await first.locator('[data-role="kr-time"]').textContent();
     mode = 'error';
     await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
     assert.equal(await page.locator('#status').isVisible(), true);
     assert.equal(await first.locator('[data-role="summary"]').innerText(), '갱신 실패 · 이전 표시');
+    assert.deepEqual(await priceValues(first), beforeNetworkError, 'Network failures retain explicitly labeled previous prices');
+    assert.equal(await first.locator('[data-role="kr-time"]').textContent(), beforeNetworkTime);
     mode = 'valid';
     await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
     assert.equal(await page.locator('#status').isVisible(), false);
 
-    for (const invalidMode of ['invalid', 'staleFx']) {
+    for (const invalidMode of ['invalid', 'missingFx', 'invalidFx', 'staleFx']) {
+      const previousPrices = await priceValues(first);
       mode = invalidMode;
       await page.locator('#lastRefreshAt').evaluate(e => { e.textContent = 'sentinel'; });
       await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
       assert.equal(await page.locator('#lastRefreshAt').innerText(), 'sentinel');
       assert.equal(await page.locator('#status').isVisible(), true);
       assert.doesNotMatch(await page.locator('main').innerText(), /NaN|Infinity/);
-      assert.equal(await page.locator('[data-company-id="sk-hynix"] [data-role="summary"]').innerText(), invalidMode === 'invalid' ? '비교 불가' : '이전 시세 · 확인 필요');
+      if (invalidMode === 'staleFx') {
+        assert.equal(await first.locator('[data-role="summary"]').innerText(), '이전 시세 · 확인 필요');
+        assert.deepEqual(await priceValues(first), previousPrices, 'Valid stale FX keeps comparison prices');
+      } else {
+        const affected = invalidMode === 'invalid' ? ['sk-hynix', 'kb-financial'] : marketFixture().companies.map(company => company.id);
+        for (const id of affected) await assertCleared(page.locator(`[data-company-id="${id}"]`));
+      }
+      mode = 'valid'; offset++;
+      await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
+      await assertRestored();
     }
-    mode = 'partial';
+    for (const partialMode of ['partial', 'partialKr']) {
+      mode = partialMode; requests = [];
+      const unaffected = page.locator('[data-company-id="sk-hynix"]');
+      const previousPrices = await priceValues(unaffected);
+      await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
+      assert.deepEqual(requests, ['/api/market?force=1']);
+      const affected = page.locator(`[data-company-id="${partialMode === 'partial' ? 'woori-financial' : 'kb-financial'}"]`);
+      await assertCleared(affected);
+      assert.deepEqual(await priceValues(unaffected), previousPrices, 'Other companies keep their valid prices');
+      assert.equal(await page.locator('#status').isVisible(), false);
+      if (partialMode === 'partialKr') {
+        assert.equal(await affected.locator('[data-role="content"]').isVisible(), true);
+        assert.equal((await layout()).overflow, false);
+        await affected.screenshot({ path: `test-results/error-display-${label}.png` });
+      }
+      mode = 'valid'; offset++;
+      await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
+      await assertRestored();
+    }
+    mode = 'staleQuote';
+    const beforeStaleQuote = await priceValues(first);
     await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
-    assert.match(await page.locator('[data-company-id="woori-financial"] [data-role="kr-time"]').textContent(), /불러오지 못했습니다/);
-    assert.equal(await page.locator('#status').isVisible(), false);
-    assert.equal(await page.locator('[data-company-id="woori-financial"] [data-role="summary"]').innerText(), '비교 불가');
+    assert.equal(await first.locator('[data-role="summary"]').innerText(), '이전 시세 · 확인 필요');
+    assert.deepEqual(await priceValues(first), beforeStaleQuote, 'Valid stale quotes keep comparison prices');
 
     // An automatic request already in flight must not overwrite a newer manual refresh.
     mode = 'hold'; offset = 0; requests = [];
@@ -230,6 +291,7 @@ try {
     assert.ok((await page.locator('[data-role="summary"]').allTextContents()).every(value => value === '비교 불가'));
     assert.ok((await page.locator('[data-role="summary-adr"]').allTextContents()).every(value => value === '—'));
     assert.deepEqual(requests, ['/api/market?company=sk-hynix']);
+    for (const company of marketFixture().companies) await assertCleared(page.locator(`[data-company-id="${company.id}"]`));
     await page.screenshot({ path: `test-results/seo-initial-error-${label}.png` });
     mode = 'valid'; requests = [];
     await page.locator('#refresh').click(); await ready();
