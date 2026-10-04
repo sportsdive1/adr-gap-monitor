@@ -14,6 +14,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
   let background = null;
   let generation = 0;
   let interval;
+  let displayedFx = null;
 
   function status(message = '') {
     $('status').textContent = message;
@@ -72,6 +73,7 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     cards.get(company.id).dataset.summaryState = 'unavailable';
   }
   function failedRefresh() {
+    renderFx(displayedFx, '갱신 실패 · 이전 환율');
     for (const id of cards.keys()) {
       if (element({ id }, 'summary-adr').textContent !== '—') summaryIssue({ id }, '갱신 실패 · 이전 표시');
       else issue({ id }, QUOTE_ERROR);
@@ -112,12 +114,21 @@ export function createApp({ document, window, fetchFn = window.fetch.bind(window
     return healthy;
   }
 
+  function renderFx(fx, notice = '') {
+    displayedFx = validFx(fx) ? fx : null;
+    if (!displayedFx) {
+      $('fxTime').textContent = '환율: —';
+      $('fxUpdatedAt').textContent = FX_ERROR;
+      return;
+    }
+    $('fxTime').textContent = `환율: 1 USD = ${fx.rates.KRW.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원`;
+    const state = notice || (fx.stale ? '최신 환율 오류 / 이전 환율' : '');
+    $('fxUpdatedAt').textContent = `기준: ${timeLabel(fx.updatedAt)}${state ? ` · ${state}` : ''}`;
+  }
+
   function renderMarket(market) {
     if (!Array.isArray(market.companies)) throw new Error(MARKET_ERROR);
-    if (validFx(market.fx)) {
-      $('fxTime').textContent = `환율: 1 USD = ${market.fx.rates.KRW.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원`;
-      $('fxUpdatedAt').textContent = `기준: ${timeLabel(market.fx.updatedAt)}`;
-    }
+    renderFx(market.fx);
     let mainHealthy = false;
     for (const company of market.companies) {
       if (!cards.has(company.id)) continue;

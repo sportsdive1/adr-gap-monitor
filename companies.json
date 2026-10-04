@@ -9,9 +9,9 @@
     "usExchange": "NASDAQ",
     "commonPerAdr": 0.1,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.1\uC8FC",
-    "ratioSource": "SK hynix Form F-1, Amendment No. 2",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526295501/d32785df1a.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "SK hynix IR — Listing Information",
+    "ratioSourceUrl": "https://www.skhynix.com/ir/UI-FR-IR03/",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "kb-financial",
@@ -25,7 +25,7 @@
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC",
     "ratioSource": "KB Financial Group Form F-6 (filed 2015-11-13)",
     "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1445930/000119380515001876/e614274_f6-kb.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "shinhan-financial",
@@ -37,9 +37,9 @@
     "usExchange": "NYSE",
     "commonPerAdr": 1,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 1\uC8FC",
-    "ratioSource": "Shinhan Financial Group Form 20-F (filed 2026-04-22)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1263043/000119312526168235/d75079d20f.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — Shinhan Financial Group",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/estfee.aspx?cusip=824596100&pageId=15&subpageID=114",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "posco-holdings",
@@ -51,9 +51,9 @@
     "usExchange": "NYSE",
     "commonPerAdr": 0.25,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.25\uC8FC",
-    "ratioSource": "POSCO Form F-6 (filed 2013-06-20)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/889132/000119380513001163/e611032_f6-posco.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — POSCO Holdings",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/estfee.aspx?cusip=693483109&pageId=15&subpageID=114",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "woori-financial",
@@ -65,9 +65,9 @@
     "usExchange": "NYSE",
     "commonPerAdr": 3,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 3\uC8FC",
-    "ratioSource": "Woori Financial Group Form F-6EF (filed 2019-01-11)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1264136/000119380519000040/e618111_f6ef-woori.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — Woori Financial Group",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/pgm_dispaDivd.aspx?Type=D&cusip=981064108&pageId=15&subpageID=113",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "kepco",
@@ -79,9 +79,9 @@
     "usExchange": "NYSE",
     "commonPerAdr": 0.5,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC",
-    "ratioSource": "Korea Electric Power Form F-6 (filed 2014-06-12)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/887225/000119380514001226/e612406_f6-kep.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — Korea Electric Power",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/pgm_d.aspx?cusip=500631106&pageId=15&subpageid=106",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "sk-telecom",
@@ -93,9 +93,9 @@
     "usExchange": "NYSE",
     "commonPerAdr": 0.5555555556,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 5/9\uC8FC",
-    "ratioSource": "SK Telecom Form 20-F (filed 2026-04-29)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1015650/000119312526188763/d78252d20f.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — SK Telecom",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/pgm_d.aspx?cusip=78440P306&pageId=16&subpageID=104&typeDisplay=A",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "kt",
@@ -107,9 +107,9 @@
     "usExchange": "NYSE",
     "commonPerAdr": 0.5,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC",
-    "ratioSource": "KT Corporation Form F-6EF (filed 2025-02-13)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/892450/000119380525000172/e664162_f6ef-ktcorp.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — KT Corporation",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/pgm_dispaDivd.aspx?Type=D&cusip=48268K101&pageId=15&subpageID=113",
+    "ratioVerifiedAt": "2026-10-04"
   },
   {
     "id": "lg-display",
@@ -121,8 +121,8 @@
     "usExchange": "NYSE",
     "commonPerAdr": 0.5,
     "ratioLabel": "ADR 1\uC8FC = \uBCF4\uD1B5\uC8FC 0.5\uC8FC",
-    "ratioSource": "LG Display Form F-6 POS (filed 2014-07-30)",
-    "ratioSourceUrl": "https://www.sec.gov/Archives/edgar/data/1290109/000119380514001587/e612579_f6pos-lg.htm",
-    "ratioVerifiedAt": "2026-07-21"
+    "ratioSource": "Citi Depositary Receipt Services — LG Display",
+    "ratioSourceUrl": "https://depositaryreceipts.citi.com/adr/guides/estfee.aspx?cusip=50186V102&pageId=15&subpageID=114",
+    "ratioVerifiedAt": "2026-10-04"
   }
 ]

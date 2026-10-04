@@ -8,6 +8,9 @@ import sitemapXml from './sitemap.xml';
 import appJs from './assets/app.js';
 import modelJs from './assets/model.js';
 import stylesCss from './assets/styles.css';
+import faviconPng from './assets/favicon.png';
+import faviconIco from './assets/favicon.ico';
+import socialPreviewPng from './assets/social-preview.png';
 
 import { createMarketService } from './src/market-service.js';
 import { renderHome } from './src/render-home.js';
@@ -34,6 +37,9 @@ export default {
       if (url.pathname === '/assets/app.js') return text(appJs, 'application/javascript; charset=utf-8');
       if (url.pathname === '/assets/model.js') return text(modelJs, 'application/javascript; charset=utf-8');
       if (url.pathname === '/assets/styles.css') return text(stylesCss, 'text/css; charset=utf-8');
+      if (url.pathname === '/assets/favicon.png') return text(faviconPng, 'image/png');
+      if (url.pathname === '/favicon.ico') return text(faviconIco, 'image/x-icon');
+      if (url.pathname === '/assets/social-preview.png') return text(socialPreviewPng, 'image/png');
       if (url.pathname === '/') return html(homePage);
       if (url.pathname === '/terms.html') return html(termsHtml);
       if (url.pathname === '/privacy.html') return html(privacyHtml);

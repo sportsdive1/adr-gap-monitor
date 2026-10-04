@@ -31,6 +31,18 @@ test('Initial HTML contains all company metadata without scripts, Yahoo calls or
   assert.equal(calls, 0);
 });
 
+test('Public pages reference a crawlable favicon and home/guide share a real social image', async () => {
+  for (const path of ['/', '/what-is-adr-gap/', '/terms.html', '/privacy.html']) {
+    const html = await (await request('https://adrgap.com' + path)).text();
+    assert.match(html, /rel="icon" type="image\/png" sizes="96x96" href="\/assets\/favicon.png"/);
+    if (path === '/' || path === '/what-is-adr-gap/') {
+      assert.match(html, /property="og:image" content="https:\/\/adrgap.com\/assets\/social-preview.png"/);
+      assert.match(html, /name="twitter:card" content="summary_large_image"/);
+    }
+  }
+  assert.equal(calls, 0, 'Metadata requests do not query Yahoo');
+});
+
 test('Company metadata is escaped in text and attributes without interpreting replacement tokens', () => {
   const name = '<img src=x onerror="alert(1)"> & \' $& {{companyCount}}';
   const html = renderHome(source, [{ ...companies[0], name }]);
@@ -75,7 +87,7 @@ test('Guide example agrees with the actual comparison model and sitemap changes 
   assert.match(guide, /10\.00% 높음/);
   assert.match(guide, /9\.09%/);
   assert.match(guide, /실제 종목·시세가 아닌 계산 예시/);
-  const sitemap = await (await request('https://adrgap.com/sitemap.xml')).text();
+  const sitemap = (await (await request('https://adrgap.com/sitemap.xml')).text()).replace(/\r\n/g, '\n');
   for (const path of ['/', '/what-is-adr-gap/']) assert.ok(sitemap.includes('<loc>https://adrgap.com' + path + '</loc>\n    <lastmod>2026-09-09</lastmod>'));
   for (const path of ['/terms.html', '/privacy.html']) assert.ok(sitemap.includes('<loc>https://adrgap.com' + path + '</loc>\n    <lastmod>2026-07-20</lastmod>'));
 });

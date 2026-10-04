@@ -3,6 +3,9 @@
   "name": "adr-gap-monitor",
   "main": "worker.js",
   "compatibility_date": "2026-07-20",
+  "dev": {
+    "host": "localhost"
+  },
   "routes": [
     {
       "pattern": "adrgap.com",
@@ -14,6 +17,11 @@
     }
   ],
   "rules": [
+    {
+      "type": "Data",
+      "globs": ["**/assets/*.png", "**/assets/*.ico"],
+      "fallthrough": false
+    },
     {
       "type": "Text",
       "globs": ["**/*.html", "**/*.txt", "**/*.xml", "**/assets/*.js", "**/assets/*.css"],

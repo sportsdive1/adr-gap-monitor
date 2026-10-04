@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { marketFixture } from './fixtures.js';
-import { compare, gapSummary, money, PREFERENCES_KEY } from '../assets/model.js';
+import { compare, gapSummary, money, timeLabel, PREFERENCES_KEY } from '../assets/model.js';
 
 const server = spawn(process.execPath, ['scripts/test-server.mjs'], { stdio: ['ignore', 'pipe', 'inherit'] });
 const url = await new Promise((resolve, reject) => {
@@ -50,6 +50,7 @@ try {
       if (mode === 'invalid') { data.quotes['000660'].price = 0; data.quotes['105560'].price = 0; }
       if (mode === 'missingFx') data.fx = null;
       if (mode === 'invalidFx') data.fx.rates.KRW = 0;
+      if (mode === 'invalidFxTime') data.fx.updatedAt = 'not-a-timestamp';
       if (mode === 'staleFx') { data.fx.stale = true; data.errors.fx = { message: 'mock FX failure' }; }
       if (mode === 'staleQuote') { data.quotes.KB.stale = true; data.errors.KB = { message: 'mock quote failure' }; }
       if (mode === 'partial') { delete data.quotes.WF; data.errors.WF = { message: 'mock quote failure' }; }
@@ -77,6 +78,17 @@ try {
 
     const priceRoles = ['summary-fair-adr', 'summary-adr', 'kr-price', 'us-price', 'kr-usd', 'us-krw'];
     const priceValues = card => card.evaluate((element, roles) => roles.map(role => element.querySelector(`[data-role="${role}"]`).textContent), priceRoles);
+    async function assertFx(state = '') {
+      if (state === 'missing') {
+        assert.equal(await page.locator('#fxTime').innerText(), '환율: —');
+        assert.equal(await page.locator('#fxUpdatedAt').innerText(), '환율을 불러오지 못했습니다.');
+        return;
+      }
+      const fx = marketFixture(offset).fx;
+      const rate = fx.rates.KRW.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      assert.equal(await page.locator('#fxTime').innerText(), `환율: 1 USD = ${rate}원`);
+      assert.equal(await page.locator('#fxUpdatedAt').innerText(), `기준: ${timeLabel(fx.updatedAt)}${state ? ` · ${state}` : ''}`);
+    }
     async function assertCleared(card) {
       assert.deepEqual(await priceValues(card), priceRoles.map(() => '—'), `${label}: ${mode} clears summary and detail prices`);
       assert.equal(await card.locator('[data-role="summary"]').innerText(), '비교 불가');
@@ -86,6 +98,7 @@ try {
       }
     }
     async function assertRestored() {
+      await assertFx();
       const data = marketFixture(offset);
       for (const company of data.companies) {
         const card = page.locator(`[data-company-id="${company.id}"]`);
@@ -170,28 +183,39 @@ try {
     assert.equal(await first.locator('[data-role="summary"]').innerText(), '갱신 실패 · 이전 표시');
     assert.deepEqual(await priceValues(first), beforeNetworkError, 'Network failures retain explicitly labeled previous prices');
     assert.equal(await first.locator('[data-role="kr-time"]').textContent(), beforeNetworkTime);
+    await assertFx('갱신 실패 · 이전 환율');
     mode = 'valid';
     await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
     assert.equal(await page.locator('#status').isVisible(), false);
+    await assertFx();
 
-    for (const invalidMode of ['invalid', 'missingFx', 'invalidFx', 'staleFx']) {
+    for (const invalidMode of ['invalid', 'missingFx', 'invalidFx', 'invalidFxTime', 'staleFx']) {
       const previousPrices = await priceValues(first);
       mode = invalidMode;
-      await page.locator('#lastRefreshAt').evaluate(e => { e.textContent = 'sentinel'; });
+      const previousRefresh = '마지막 새로고침: 오후 03:30:00';
+      await page.locator('#lastRefreshAt').evaluate((e, value) => { e.textContent = value; }, previousRefresh);
       await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
-      assert.equal(await page.locator('#lastRefreshAt').innerText(), 'sentinel');
+      assert.equal(await page.locator('#lastRefreshAt').innerText(), previousRefresh);
       assert.equal(await page.locator('#status').isVisible(), true);
       assert.doesNotMatch(await page.locator('main').innerText(), /NaN|Infinity/);
       if (invalidMode === 'staleFx') {
         assert.equal(await first.locator('[data-role="summary"]').innerText(), '이전 시세 · 확인 필요');
         assert.deepEqual(await priceValues(first), previousPrices, 'Valid stale FX keeps comparison prices');
+        await assertFx('최신 환율 오류 / 이전 환율');
       } else {
         const affected = invalidMode === 'invalid' ? ['sk-hynix', 'kb-financial'] : marketFixture().companies.map(company => company.id);
         for (const id of affected) await assertCleared(page.locator(`[data-company-id="${id}"]`));
+        await assertFx(invalidMode === 'invalid' ? '' : 'missing');
+      }
+      assert.equal((await layout()).overflow, false, `${label}: FX error layout`);
+      if (invalidMode === 'missingFx' || invalidMode === 'staleFx') {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: `test-results/fx-${invalidMode}-${label}.png` });
       }
       mode = 'valid'; offset++;
       await page.locator('#refresh').click(); await page.locator('#refresh:not([disabled])').waitFor();
       await assertRestored();
+      if (invalidMode === 'staleFx') await page.screenshot({ path: `test-results/fx-recovered-${label}.png` });
     }
     for (const partialMode of ['partial', 'partialKr']) {
       mode = partialMode; requests = [];
@@ -292,11 +316,13 @@ try {
     assert.ok((await page.locator('[data-role="summary-adr"]').allTextContents()).every(value => value === '—'));
     assert.deepEqual(requests, ['/api/market?company=sk-hynix']);
     for (const company of marketFixture().companies) await assertCleared(page.locator(`[data-company-id="${company.id}"]`));
+    await assertFx('missing');
     await page.screenshot({ path: `test-results/seo-initial-error-${label}.png` });
     mode = 'valid'; requests = [];
     await page.locator('#refresh').click(); await ready();
     assert.deepEqual(requests, ['/api/market?force=1']);
     assert.equal(await page.locator('#status').isVisible(), false);
+    await assertFx();
     await first.locator('[data-role="toggle"]').click();
 
     await page.setViewportSize({ width: 320, height: 844 });

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f4f6fb"/>
+  <rect x="32" y="32" width="1136" height="566" rx="32" fill="#fff" stroke="#e1e6ef" stroke-width="2"/>
+  <rect x="72" y="132" width="64" height="6" rx="3" fill="#4c55c8"/>
+  <g font-family="'Malgun Gothic', 'Noto Sans KR', Arial, sans-serif">
+    <text x="72" y="99" font-size="34" font-weight="700" fill="#182338">ADR<tspan fill="#68758c" font-weight="500">GAP</tspan></text>
+    <text x="1128" y="94" text-anchor="end" font-size="23" fill="#68758c">adrgap.com</text>
+    <text x="72" y="208" font-size="26" font-weight="700" fill="#4c55c8">ADR 괴리율 모니터</text>
+    <text x="72" y="290" font-size="58" font-weight="700" letter-spacing="-2" fill="#182338">한국 주식과 미국 ADR,</text>
+    <text x="72" y="365" font-size="58" font-weight="700" letter-spacing="-2" fill="#182338">같은 기준으로 비교하세요.</text>
+    <text x="72" y="420" font-size="26" fill="#68758c">ADR 비율과 환율을 반영한 가격 비교 · 참고용 지연 시세</text>
+    <g fill="#f0f2ff">
+      <rect x="72" y="470" width="292" height="66" rx="16"/>
+      <rect x="384" y="470" width="352" height="66" rx="16"/>
+      <rect x="756" y="470" width="372" height="66" rx="16"/>
+    </g>
+    <g font-size="24" font-weight="700" fill="#4c55c8" text-anchor="middle">
+      <text x="218" y="512">ADR 비율 반영</text>
+      <text x="560" y="512">USD/KRW 환율 적용</text>
+      <text x="942" y="512">기준 시각 함께 확인</text>
+    </g>
+  </g>
+</svg>

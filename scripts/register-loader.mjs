@@ -1,7 +1,7 @@
 import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 
-// Mirror Wrangler's Text imports for Node contract tests, never used in production.
+// Mirror Wrangler's Text/Data imports for Node contract tests, never used in production.
 registerHooks({
   resolve(specifier, context, next) {
     const result = next(specifier, context);
@@ -9,6 +9,10 @@ registerHooks({
     return result;
   },
   load(url, context, next) {
+    if (/\.(png|ico)$/.test(url)) {
+      const bytes = readFileSync(new URL(url));
+      return { format: 'module', shortCircuit: true, source: `export default Uint8Array.from(${JSON.stringify([...bytes])}).buffer;` };
+    }
     if (/\.(html|txt|xml|css|json)$/.test(url) || url.endsWith('?raw')) {
       const path = new URL(url); path.search = '';
       const body = readFileSync(path, 'utf8');

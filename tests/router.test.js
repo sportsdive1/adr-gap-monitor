@@ -20,6 +20,18 @@ test('Worker serves all existing pages and extracted assets with correct content
     assert.ok(response.headers.get('content-type').startsWith(type));
     assert.ok((await response.text()).length > 0);
   }
+  for (const [path, type, signature, dimensions] of [
+    ['/assets/favicon.png', 'image/png', [137, 80, 78, 71, 13, 10, 26, 10], [96, 96]],
+    ['/assets/social-preview.png', 'image/png', [137, 80, 78, 71, 13, 10, 26, 10], [1200, 630]],
+    ['/favicon.ico', 'image/x-icon', [0, 0, 1, 0, 1, 0], null]
+  ]) {
+    const response = await request(path);
+    assert.equal(response.status, 200, path);
+    assert.equal(response.headers.get('content-type'), type);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.deepEqual([...bytes.subarray(0, signature.length)], signature, path);
+    if (dimensions) assert.deepEqual([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], dimensions, path);
+  }
   assert.equal((await request('/missing')).status, 404);
   assert.equal((await request('/api/market?company=missing')).status, 404);
   assert.equal(calls.length, 0);
