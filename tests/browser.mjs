@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { marketFixture } from './fixtures.js';
-import { compare, gapSummary, money, timeLabel, PREFERENCES_KEY } from '../assets/model.js';
+import { compare, gapSummary, money, PREFERENCES_KEY } from '../assets/model.js';
 
 const server = spawn(process.execPath, ['scripts/test-server.mjs'], { stdio: ['ignore', 'pipe', 'inherit'] });
 const url = await new Promise((resolve, reject) => {
@@ -87,7 +87,9 @@ try {
       const fx = marketFixture(offset).fx;
       const rate = fx.rates.KRW.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       assert.equal(await page.locator('#fxTime').innerText(), `환율: 1 USD = ${rate}원`);
-      assert.equal(await page.locator('#fxUpdatedAt').innerText(), `기준: ${timeLabel(fx.updatedAt)}${state ? ` · ${state}` : ''}`);
+      // Match the browser context, independently of the host/CI machine's time zone.
+      const sourceTime = new Date(fx.updatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      assert.equal(await page.locator('#fxUpdatedAt').innerText(), `기준: ${sourceTime}${state ? ` · ${state}` : ''}`);
     }
     async function assertCleared(card) {
       assert.deepEqual(await priceValues(card), priceRoles.map(() => '—'), `${label}: ${mode} clears summary and detail prices`);
